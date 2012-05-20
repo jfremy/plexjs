@@ -5,11 +5,11 @@ var data_utils = require('../utils/data_utils');
 module.exports = function(app){
 
     app.get('/servers/:serverId/sections/:sectionId/filters/', function(req, res, next) {
-        var authToken = req.server.hasOwnProperty('accessToken') ? req.server.accessToken : req.session.plexToken;
+        var authToken = plex_utils.getAuthToken(req);
 
-        retrieveFiltersList(authToken, req.server, req.params.sectionId, function(data){
+        retrieveFiltersList(authToken, req.session.server, req.params.sectionId, function(data){
             data_utils.makeSureIsArray(data, "Directory");
-            res.render('filters/list.jade', { filters: data.Directory, server: req.server, authToken: authToken, backTrace: "../.." });
+            res.render('filters/list.jade', { filters: data.Directory, server: req.session.server, authToken: authToken, backTrace: "../.." });
         }, function(err) {
             console.log(err.msg);
             res.statusCode = err.statusCode;
@@ -29,10 +29,10 @@ module.exports = function(app){
 
 
     function processFilter(req, res, next, filtersString, backTraceString) {
-        var authToken = req.server.hasOwnProperty('accessToken') ? req.server.accessToken : req.session.plexToken;
+        var authToken = plex_utils.getAuthToken(req);
         var options = {
-            host: req.server.host,
-            port: req.server.port,
+            host: req.session.server.host,
+            port: req.session.server.port,
             path: '/library/sections/' + req.params.sectionId + filtersString +'?X-Plex-Token=' + encodeURIComponent(authToken)
         };
 
@@ -41,27 +41,27 @@ module.exports = function(app){
             // List of videos
             if(viewgroup == "movie") {
                 data_utils.makeSureIsArray(data, "Video");
-                plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.server, data.Video, "thumb");
-                res.render('movies/list.jade', { videos: data.Video, server: req.server, authToken: authToken, backTrace: backTraceString });
+                plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
+                res.render('movies/list.jade', { videos: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString });
                 return;
             }
             if(viewgroup == "show") {
                 data_utils.makeSureIsArray(data, "Directory");
-                plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.server, data.Directory, "thumb");
-                res.render('shows/list.jade', { shows: data.Directory, server: req.server, authToken: authToken, backTrace: backTraceString});
+                plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Directory, "thumb");
+                res.render('shows/list.jade', { shows: data.Directory, server: req.session.server, authToken: authToken, backTrace: backTraceString});
                 return;
             }
             if(viewgroup == "episode") {
                 data_utils.makeSureIsArray(data, "Video");
-                plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.server, data.Video, "thumb");
-                res.render('episodes/list.jade', { episodes: data.Video, server: req.server, authToken: authToken, backTrace: backTraceString});
+                plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
+                res.render('episodes/list.jade', { episodes: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString});
                 return;
             }
 
             // TODO add audio / pictures ... later
             // Default to rendering a directory structure
             data_utils.makeSureIsArray(data, "Directory");
-            res.render('filters/list.jade', { filters: data.Directory || new Array(), server: req.server, backTrace: backTraceString });
+            res.render('filters/list.jade', { filters: data.Directory || new Array(), server: req.session.server, backTrace: backTraceString });
             return;
         }, function(err) {
             console.log(err.msg);

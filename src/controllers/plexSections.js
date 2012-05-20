@@ -5,8 +5,8 @@ module.exports = function(app){
 
 /*
     app.param('sectionId', function(req, res, next, sectionId) {
-        var authToken = req.server.hasOwnProperty('accessToken') ? req.server.accessToken : req.session.plexToken;
-        retrieveSection(authToken, req.server, sectionId, function(section) {
+             var authToken = plex_utils.getAuthToken(req);
+             retrieveSection(authToken, req.session.server, sectionId, function(section) {
             req.section = section;
         }, function(err) {
             console.log(err.msg);
@@ -18,12 +18,11 @@ module.exports = function(app){
 */
 
     app.get('/servers/:serverId/sections/', function(req, res, next){
-        var authToken = req.server.hasOwnProperty('accessToken') ? req.server.accessToken : req.session.plexToken;
-
-        retrieveSectionsList(authToken, req.server, function(data) {
+        var authToken = plex_utils.getAuthToken(req);
+        retrieveSectionsList(authToken, req.session.server, function(data) {
             data_utils.makeSureIsArray(data, "Directory");
             req.sections = data.Directory;
-            res.render('sections/list.jade', { sections: req.sections, server: req.server, authToken: authToken });
+            res.render('sections/list.jade', { sections: req.sections, server: req.session.server, authToken: authToken });
         }, function(err) {
             console.log(err.msg);
             res.statusCode = err.statusCode;

@@ -54,10 +54,15 @@ module.exports = (function() {
         return result;
     }
 
+    function getAuthToken(req) {
+        return (req.session.server.hasOwnProperty('accessToken') ? req.session.server.accessToken : req.session.plexToken);
+    }
+
     return {
         buildPhotoBaseTranscodeUrl: buildPhotoBaseTranscodeUrl,
         buildVideoTranscodeUrlHLS: buildVideoTranscodeUrlHLS,
-        buildVideoTranscodeUrlSmooth: buildVideoTranscodeUrlSmooth
+        buildVideoTranscodeUrlSmooth: buildVideoTranscodeUrlSmooth,
+        getAuthToken: getAuthToken
     }
 
 })();

@@ -10,14 +10,7 @@ module.exports = function(app){
             retrieveServersList(req.session.plexToken, function(data) {
                 data_utils.makeSureIsArray(data, "Server");
                 req.session.plexServers = data.Server;
-                server = findServerById(req.session.plexServers, serverId);
-                if(!server) {
-                    res.status = 404;
-                    res.end("Could not find server in list");
-                    return;
-                }
-                req.server = server;
-                next();
+                updateServerInSession(req, res, next, serverId);
                 return;
             }, function(err) {
                 console.log(err.msg);
@@ -27,17 +20,7 @@ module.exports = function(app){
             return;
 
         }
-        server = findServerById(req.session.plexServers, serverId);
-        if(!server) {
-            //TODO: fail would be probably better to send that up the chain
-            res.statusCode = 404;
-            res.end("Could not find server in list");
-            return;
-
-        }
-
-        req.server = server;
-        next();
+        updateServerInSession(req, res, next, serverId);
         return;
     });
 
@@ -59,6 +42,18 @@ module.exports = function(app){
         res.end();
         return;
     });
+
+    function updateServerInSession(req, res, next, serverId) {
+        var server = findServerById(req.session.plexServers, serverId);
+        if(!server) {
+            res.status = 404;
+            res.end("Could not find server in list");
+            return;
+        }
+        req.session.server = server;
+        next();
+        return;
+    }
 
     function findServerById(servers, id) {
         var server;
