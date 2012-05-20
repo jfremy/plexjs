@@ -1,0 +1,15 @@
+doctype 5
+html(lang="en")
+  head
+    title= server.name + ' - Plex Media Server - Filters'
+    script(src='/public/js/jquery.js')
+  body
+    h1
+      a(href='#{backTrace}/../..') Plex Media Servers
+      >
+      a(href='#{backTrace}') #{server.name}
+      >
+    each filter,i in filters
+      div
+        a(href='#{filter.key}/')
+          p #{filter.title}

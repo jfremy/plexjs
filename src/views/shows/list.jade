@@ -1,0 +1,16 @@
+doctype 5
+html(lang="en")
+  head
+    title= server.name + ' - Plex Media Server - Shows'
+    script(src='/public/js/jquery.js')
+  body
+    h1
+      a(href='#{backTrace}/../..') Plex Media Servers
+      >
+      a(href='#{backTrace}') #{server.name}
+      >
+    each show,i in shows
+      div
+        a(href='#{backTrace}/../library/shows/#{show.ratingKey}/')
+          img(src='#{show.thumbTranscodeUrl}&width=146&height=156')
+          p #{show.title} (#{show.year}) - #{show.studio}

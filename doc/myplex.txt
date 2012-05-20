@@ -1,0 +1,37 @@
+https://my.plexapp.com/servers/[serverId]/access_tokens.xml?auth_token=[authToken]
+
+<access_tokens>
+    <access_token token="SxQgs85dK9rZ9PNXcTFZ" owned="1"/>
+    <access_token token="e6Q6pR5v58xxzih4ddN8" owned="1"/>
+    <access_token token="KMsGysg1xx23ifHDoyss" owned="1"/>
+    <access_token token="SkgWeq15Nt9JyPp2AEZp" owned="1"/>
+    <access_token token="JmPpqQrYHasYsYiFxpF6" owned="1"/>
+    <access_token token="75uiyHte7svBoT7eLuQs" owned="1"/>
+    <access_token token="vfz5vr3S7BsxK6qpybyW" owned="1"/>
+    <access_token token="x648Xwo26ULLFyFhJmGx" owned="1"/>
+    <access_token token="WdSaYqcF1kph9QqUsi4g" owned="1"/>
+    <access_token token="atUzTGLZip5qHkg2sH17" owned="1"/>
+    <access_token token="exs7Lpo1yugBz13up1o2" owned="1"/>
+    <access_token token="53pSCtyLDSNWSwWFN6kG" owned="1"/>
+    <access_token token="jCpgtdziwopVWJgQCDyu" owned="1"/>
+    <access_token token="LpPkxThZgZwdTs6GtBQ5" owned="1"/>
+    <access_token token="iGoqzULR1sNMqSTzBuy4" owned="1"/>
+    <access_token token="DpcV8iQyzzW2S4Kuj4NJ" owned="1"/>
+    <access_token token="HVwkJK3hqu5MtVq2zg9a" owned="1"/>
+    <access_token token="o3HNbMgBGiqz9X9zTxoA" owned="1"/>
+    <access_token token="iCEejxHNPp3Ux88nLwcU" owned="1"/>
+    <access_token token="6QF2gEx512NNr14hG6nP" owned="1"/>
+    <access_token token="Zxdbekc4QDfLVTq8nxEq" owned="1"/>
+    <access_token token="WmCKXAx4JpwWkA2FTsFh">
+        <library_section key="3"/>
+        <library_section key="2"/>
+    </access_token>
+    <access_token token="zcMNzc4zu6q5MBFsdbuD">
+        <library_section key="3"/>
+        <library_section key="2"/>
+    </access_token>
+    <access_token token="aonXjf96dhKFhRrbGXnQ">
+        <library_section key="3"/>
+        <library_section key="2"/>
+    </access_token>
+</access_tokens>

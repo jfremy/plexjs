@@ -1,0 +1,20 @@
+doctype 5
+html(lang="en")
+  head
+    title= server.name + ' - Plex Media Server - Videos'
+    link(rel='stylesheet', href='/public/css/video-js.css')
+    script(src='/public/js/jquery.js')
+    script(src='/public/js/video.js')
+  body
+    h1 #{video.title}
+    a(href='hls/') Stream it
+    div #{video.summary}
+    div
+      img(src='#{video.thumbTranscodeUrl}&width=300&height=400')
+    div Writer #{video.Writer.tag}
+    div Director #{video.Director.tag}
+    div Cast
+      each role in video.Role
+        div #{role.tag} as #{role.role}
+    video#videoPlayer.video-js.vjs-default-skin(width='640',height='480',controls,autoplay)
+      source(src='hls/index.m3u8')

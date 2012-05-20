@@ -1,0 +1,10 @@
+doctype 5
+html(lang="en")
+  head
+    title= 'Plex Media Servers List'
+    script(src='/public/js/jquery.js')
+  body
+    h1 Plex Media Servers
+    each server,i in plexServers
+      div
+        a(href='#{server.machineIdentifier}/sections/') #{server.name} - #{server.host}:#{server.port}

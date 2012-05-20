@@ -1,0 +1,15 @@
+doctype 5
+html(lang="en")
+  head
+    title= server.name
+    script(src='/public/js/jquery.js')
+  body
+    h1
+      a(href='../..') Plex Media Servers
+      >
+      #{server.name}
+    each section,i in sections
+      div
+        a(href='#{section.key}/filters/')
+          img(src='http://#{server.host}:#{server.port}#{section.art}?X-Plex-Token=#{authToken}',height='200')
+          p #{section.title}
