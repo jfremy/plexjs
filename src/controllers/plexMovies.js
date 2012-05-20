@@ -44,7 +44,7 @@ module.exports = function(app){
         var options = {
             host: req.session.server.host,
             port: req.session.server.port,
-            head: transcodeInfo.headers,
+            headers: transcodeInfo.headers,
             path: transcodeInfo.url
         };
         http_utils(false, options, 'none', function(data) {
