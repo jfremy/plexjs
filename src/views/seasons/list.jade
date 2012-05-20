@@ -15,6 +15,6 @@ html(lang="en")
     div #{show.summary}
     each season,i in seasons
       div
-        a(href='#{season.ratingKey}')
+        a(href='#{season.ratingKey}/episodes/')
           img(src='#{season.thumbTranscodeUrl}&width=146&height=156')
           p #{season.title}

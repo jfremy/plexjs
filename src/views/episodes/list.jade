@@ -1,0 +1,22 @@
+doctype 5
+html(lang="en")
+  head
+    title= server.name + ' - Plex Media Server - Episodes'
+    script(src='/public/js/jquery.js')
+  body
+    h1
+      a(href='/../..') Plex Media Servers
+      >
+      a(href='') #{server.name}
+      >
+      a(href='') #{show.title}
+      >
+      a(href='') #{season.title}
+    div
+      img(src='#{season.thumbTranscodeUrl}&width=146&height=156')
+    each episode,i in episodes
+      div
+        a(href='#{episode.ratingKey}/')
+          img(src='#{episode.thumbTranscodeUrl}&width=146&height=156')
+          h2 #{episode.title}
+        p #{episode.summary}

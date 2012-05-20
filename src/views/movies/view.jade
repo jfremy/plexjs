@@ -16,5 +16,5 @@ html(lang="en")
     div Cast
       each role in video.Role
         div #{role.tag} as #{role.role}
-    video#videoPlayer.video-js.vjs-default-skin(width='640',height='480',controls,autoplay)
+    video#videoPlayer.video-js.vjs-default-skin(width='640',height='480',controls)
       source(src='hls/index.m3u8')
