@@ -37,7 +37,7 @@ module.exports = function(app){
         var authToken = plex_utils.getAuthToken(req);
         var capabilities = "protocols=webkit;videoDecoders=h264{profile:high&resolution:1080&level:51};audioDecoders=mp3,aac";
 
-        var transcodeInfo = plex_utils.buildVideoTranscodeUrlHLS(req.session.movie.Video.Media.Part.key, 0, 5, false);
+        var transcodeInfo = plex_utils.buildVideoTranscodeUrlHLS(req.session.movie.Video.Media.Part.key, 0, 12, false);
         transcodeInfo.url += "&X-Plex-Token=" + encodeURIComponent(authToken);
         transcodeInfo.url += "&X-Plex-Client-Capabilities=" + encodeURIComponent(capabilities);
 

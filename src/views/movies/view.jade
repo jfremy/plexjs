@@ -2,9 +2,8 @@ doctype 5
 html(lang="en")
   head
     title= server.name + ' - Plex Media Server - Videos'
-    link(rel='stylesheet', href='/public/css/video-js.css')
     script(src='/public/js/jquery.js')
-    script(src='/public/js/video.js')
+    script(src='/public/js/jwplayer.js')
   body
     h1 #{video.title}
     a(href='hls/') Stream it
@@ -16,5 +15,25 @@ html(lang="en")
     div Cast
       each role in video.Role
         div #{role.tag} as #{role.role}
-    video#videoPlayer.video-js.vjs-default-skin(width='640',height='480',controls)
-      source(src='hls/index.m3u8')
+    div#videoPlayer No Flash or HTML5 video support it seems
+    script
+      jwplayer('videoPlayer').setup({
+          modes: [ {
+                   type: 'flash',
+                   src:  '/public/swf/player.swf',
+                   config: {
+                     file: 'hls/index.m3u8',
+                     provider:'/public/swf/adaptiveProvider.swf'
+                     }
+                   },
+                   {
+                   type:'html5',
+                   config: {
+                     file: 'hls/index.m3u8'
+                     }
+                   }
+                ],
+          autostart: true,
+          width: '320',
+          height: '240'
+        });

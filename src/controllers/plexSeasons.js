@@ -30,7 +30,7 @@ module.exports = function(app) {
         });
     });
 
-    // List
+    // List seasons
     app.get('/servers/:serverId/library/shows/:showId/seasons/', function(req, res, next){
         var authToken = plex_utils.getAuthToken(req);
         var options ={
@@ -40,6 +40,7 @@ module.exports = function(app) {
         };
         http_utils(false, options , 'xml', function(data) {
             data_utils.makeSureIsArray(data, "Directory");
+            plex_utils.populateRatingKeyFromKey(data.Directory);
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Directory, "thumb");
             res.render('seasons/list', {show: req.session.show, seasons: data.Directory, server: req.session.server, authToken: authToken });
         }, function(err) {
@@ -49,6 +50,9 @@ module.exports = function(app) {
             return;
         });
     });
+
+    app.get('/servers/:serverId/library/shows/:showId/seasons/')
+
     // View season
     app.get('/servers/:serverId/library/shows/:showId/seasons/:seasonId/', function(req, res, next){
         //TODO: todo

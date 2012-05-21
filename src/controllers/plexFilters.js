@@ -54,7 +54,7 @@ module.exports = function(app){
             if(viewgroup == "episode") {
                 data_utils.makeSureIsArray(data, "Video");
                 plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
-                res.render('episodes/list.jade', { episodes: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString});
+                res.render('episodes/various.jade', { episodes: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString});
                 return;
             }
 

@@ -58,11 +58,22 @@ module.exports = (function() {
         return (req.session.server.hasOwnProperty('accessToken') ? req.session.server.accessToken : req.session.plexToken);
     }
 
+    function populateRatingKeyFromKey(array) {
+        for(var i=0; i<array.length;i++) {
+            var elem = array[i]
+            if(!elem.hasOwnProperty("ratingKey") && elem.hasOwnProperty("key")) {
+                var idx = elem.key.lastIndexOf("/");
+                elem.ratingKey = elem.key.substring(idx);
+            }
+        }
+    }
+
     return {
         buildPhotoBaseTranscodeUrl: buildPhotoBaseTranscodeUrl,
         buildVideoTranscodeUrlHLS: buildVideoTranscodeUrlHLS,
         buildVideoTranscodeUrlSmooth: buildVideoTranscodeUrlSmooth,
-        getAuthToken: getAuthToken
+        getAuthToken: getAuthToken,
+        populateRatingKeyFromKey: populateRatingKeyFromKey
     }
 
 })();
