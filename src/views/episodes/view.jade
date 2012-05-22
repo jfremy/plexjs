@@ -1,0 +1,63 @@
+doctype 5
+html(lang="en")
+  head
+    title= server.name + ' - Plex Media Server - Videos'
+    script(src='/public/js/jquery.js')
+    script(src='/public/js/jwplayer.js')
+    script
+      function playVideo() {
+          jwplayer('player').setup({
+              modes: [ {
+                       type: 'flash',
+                       src:  '/public/swf/player.swf',
+                       config: {
+                         file: 'hls/index.m3u8?quality=' + $('#quality').val(),
+                         provider:'/public/swf/adaptiveProvider.swf'
+                         }
+                       },
+                       {
+                       type:'html5',
+                       config: {
+                         file: 'hls/index.m3u8?quality=' + $('#quality').val()
+                         }
+                       }
+                    ],
+              autostart: true,
+              width: '320',
+              height: '240'
+            });
+      }
+      $().ready(function() {
+        $('#streamit').on('click', function(event) {
+            $('#player').remove();
+            $('#videoContainer').append('<div id="player" />');
+            playVideo();
+        });
+      });
+  body
+    h1 #{episode.title}
+    div#streamit Stream it
+    div
+      a(href='') Download it
+    div Quality:
+      select(name='quality',id='quality')
+        option(value='0') 0
+        option(value='1') 1
+        option(value='2') 2
+        option(value='3') 3
+        option(value='4') 4
+        option(value='5') 5
+        option(value='6') 6
+        option(value='7') 7
+        option(value='8') 8
+        option(value='9',selected='true') 9
+        option(value='10') 10
+        option(value='11') 11
+        option(value='12') 12
+    div#videoContainer
+    div #{episode.summary}
+    div
+      img(src='#{episode.thumbTranscodeUrl}&width=300&height=400')
+    div Director: #{episode.Director.tag}
+    each writer in episode.Writer
+      div Writer: #{writer.tag}
