@@ -27,4 +27,4 @@ require('./controllers/plexShows')(app);
 require('./controllers/plexSeasons')(app);
 require('./controllers/plexEpisodes')(app);
 
-app.listen(8000);
+app.listen(8000,'localhost');

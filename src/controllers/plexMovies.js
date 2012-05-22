@@ -35,9 +35,13 @@ module.exports = function(app){
 
     app.get('/servers/:serverId/library/movies/:movieId/hls/*', function(req, res, next) {
         var authToken = plex_utils.getAuthToken(req);
-        var capabilities = "protocols=webkit;videoDecoders=h264{profile:high&resolution:1080&level:51};audioDecoders=mp3,aac";
+        var quality = req.param('quality', 5);
+        var offset = req.param('offset', 0);
+        var is3g = Boolean(req.param('is3g', false));
 
-        var transcodeInfo = plex_utils.buildVideoTranscodeUrlHLS(req.session.movie.Video.Media.Part.key, 0, 12, false);
+        var capabilities = "protocols=http-live-streaming,http-mp4-streaming,http-streaming-video,http-mp4-video,http-streaming-video-720p,http-streaming-video-1080p,http-mp4-video-720p,http-mp4-video-1080p;videoDecoders=h264{profile:high&resolution:1080&level:51},h264{profile:high&resolution:720&level:51};audioDecoders=mp3,aac";
+
+        var transcodeInfo = plex_utils.buildVideoTranscodeUrlHLS(req.session.movie.Video.Media.Part.key, offset, quality, is3g);
         transcodeInfo.url += "&X-Plex-Token=" + encodeURIComponent(authToken);
         transcodeInfo.url += "&X-Plex-Client-Capabilities=" + encodeURIComponent(capabilities);
 

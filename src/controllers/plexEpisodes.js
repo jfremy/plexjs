@@ -36,7 +36,7 @@ module.exports = function(app) {
         var options ={
             host: req.session.server.host,
             port: req.session.server.port,
-            path: '/library/metadata/' + req.params.seasonId + '/children?X-Plex-Token=' + encodeURIComponent(authToken)
+            path: '/library/metadata/' + req.param('seasonId') + '/children?X-Plex-Token=' + encodeURIComponent(authToken)
         };
         http_utils(false, options , 'xml', function(data) {
             data_utils.makeSureIsArray(data, "Video");

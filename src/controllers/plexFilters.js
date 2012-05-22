@@ -20,11 +20,11 @@ module.exports = function(app){
     });
 
     app.get('/servers/:serverId/sections/:sectionId/filters/:filterId/', function(req, res, next) {
-         processFilter(req, res, next, '/' + req.params.filterId, '../../..');
+         processFilter(req, res, next, '/' + req.param('filterId'), '../../..');
     });
 
     app.get('/servers/:serverId/sections/:sectionId/filters/:filterId/:filterId2/', function(req, res, next) {
-        processFilter(req, res, next, '/' + req.params.filterId + '/' + req.params.filterId2, '../../../..');
+        processFilter(req, res, next, '/' + req.param('filterId') + '/' + req.param('filterId2'), '../../../..');
     });
 
 
@@ -33,7 +33,7 @@ module.exports = function(app){
         var options = {
             host: req.session.server.host,
             port: req.session.server.port,
-            path: '/library/sections/' + req.params.sectionId + filtersString +'?X-Plex-Token=' + encodeURIComponent(authToken)
+            path: '/library/sections/' + req.param('sectionId') + filtersString +'?X-Plex-Token=' + encodeURIComponent(authToken)
         };
 
         http_utils(false, options , 'xml', function(data) {
