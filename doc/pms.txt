@@ -12,6 +12,8 @@ URLs
 [authent] /library/metadata/[mediaKey]/art?t=[cacheKiller]
 [authent] /library/arts
 [authent] /library/parts/[mediaKey]/[filename]
+[authent] PUT /library/parts/[mediaKey]?audioStreamId=[id]
+[authent] PUT /library/parts/[mediaKey]?subtitleStreamId=[id]
 [authent] /library/streams/[streamKey]
 [authent] /system/bundle/media/flags/studio/[studioName]?t=[cacheKiller]
 [authent] /system/bundle/media/flags/videoFrameRate/[frName]?t=[cacheKiller]
@@ -24,7 +26,13 @@ URLs
 /video/:/transcode/segmented/session/[sessionCookieGUID]/[idx]/index.m3u8
 /video/:/transcode/segmented/session/[sessionCookieGUID]/[idx]/[currentSegment]
 /video/:/transcode/segmented/stop?session=[sessionCookieGUID]
+/video/:/transcode/segmented/ping
+/music/:/transcode/generic.mp3?offset=[offset]&format=mp3&audioCodec=libmp3lame&audioBitrate=320&audioSamples=44100&url=[url]&X-Plex-Client-Capabilities
 /:/progress?key=[mediaKey]&identifier=com.plexapp.plugins.library&time=[time]&state=[state]
+/:/scrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library
+/:/unscrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library
+/:/rate?key=[mediaKey]&identifier=com.plexapp.plugins.library&rating=[rating]
+
 
 /video -> video plugins
 /music -> music plugins
@@ -58,6 +66,10 @@ Used for hmac
 - offset
 - session
 - quality
+- minQuality
+- maxQuality
+- secondsPerSegment
+- webkit=1
 - 3g (0/1)
 Not used for hmac
 - X-Plex-Access-Key
@@ -90,3 +102,4 @@ Not used for hmac
     list audio
              "mp3",
              "aac{bitrate=160000}"
+             "ac3{channels:6}"
