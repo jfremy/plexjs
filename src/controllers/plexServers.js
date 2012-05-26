@@ -28,7 +28,7 @@ module.exports = function(app){
         retrieveServersList(req.session.plexToken, function(data) {
             data_utils.makeSureIsArray(data, "Server");;
             req.session.plexServers = data.Server;
-            res.render('servers/list.jade', { plexServers: req.session.plexServers });
+            http_utils.answerBasedOnAccept(req, res,'servers/list.jade', { plexServers: req.session.plexServers });
             return;
         }, function(err) {
             console.log(err.msg);

@@ -42,7 +42,7 @@ module.exports = function(app) {
             data_utils.makeSureIsArray(data, "Directory");
             plex_utils.populateRatingKeyFromKey(data.Directory);
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Directory, "thumb");
-            res.render('seasons/list', {show: req.session.show, seasons: data.Directory, server: req.session.server, authToken: authToken });
+            http_utils.answerBasedOnAccept(req, res,'seasons/list', {show: req.session.show, seasons: data.Directory, server: req.session.server, authToken: authToken });
         }, function(err) {
             console.log(err.msg);
             res.statusCode = err.statusCode;

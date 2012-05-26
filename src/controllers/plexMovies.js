@@ -31,7 +31,7 @@ module.exports = function(app){
     //get details for a given movie
     app.get('/servers/:serverId/library/movies/:movieId/', function(req, res, next) {
         var authToken = plex_utils.getAuthToken(req);
-        res.render('movies/view.jade', { video: req.session.movie.Video, server: req.session.server, authToken: authToken});
+        http_utils.answerBasedOnAccept(req, res,'movies/view.jade', { video: req.session.movie.Video, server: req.session.server, authToken: authToken});
     });
 
     app.get('/servers/:serverId/library/movies/:movieId/hls/*', function(req, res, next) {

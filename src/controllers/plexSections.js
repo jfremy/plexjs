@@ -23,7 +23,7 @@ module.exports = function(app){
         retrieveSectionsList(authToken, req.session.server, function(data) {
             data_utils.makeSureIsArray(data, "Directory");
             req.sections = data.Directory;
-            res.render('sections/list.jade', { sections: req.sections, server: req.session.server, authToken: authToken });
+            http_utils.answerBasedOnAccept(req, res,'sections/list.jade', { sections: req.sections, server: req.session.server, authToken: authToken });
         }, function(err) {
             console.log(err.msg);
             res.statusCode = err.statusCode;

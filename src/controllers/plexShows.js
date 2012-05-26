@@ -32,7 +32,7 @@ module.exports = function(app) {
 
     app.get('/servers/:serverId/library/shows/:showId/', function(req, res, next) {
         var authToken = req.session.server.hasOwnProperty('accessToken') ? req.session.server.accessToken : req.session.plexToken;
-        res.render('shows/view.jade', {show: req.session.show, server: req.session.server, authToken: authToken});
+        http_utils.answerBasedOnAccept(req, res,'shows/view.jade', {show: req.session.show, server: req.session.server, authToken: authToken});
     });
 
 };

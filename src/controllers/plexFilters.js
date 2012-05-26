@@ -9,7 +9,7 @@ module.exports = function(app){
 
         retrieveFiltersList(authToken, req.session.server, req.params.sectionId, function(data){
             data_utils.makeSureIsArray(data, "Directory");
-            res.render('filters/list.jade', { filters: data.Directory, server: req.session.server, authToken: authToken, backTrace: "../.." });
+            http_utils.answerBasedOnAccept(req, res,'filters/list.jade', { filters: data.Directory, server: req.session.server, authToken: authToken, backTrace: "../.." });
         }, function(err) {
             console.log(err.msg);
             res.statusCode = err.statusCode;
@@ -42,26 +42,26 @@ module.exports = function(app){
             if(viewgroup == "movie") {
                 data_utils.makeSureIsArray(data, "Video");
                 plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
-                res.render('movies/list.jade', { videos: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString });
+                http_utils.answerBasedOnAccept(req, res,'movies/list.jade', { videos: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString });
                 return;
             }
             if(viewgroup == "show") {
                 data_utils.makeSureIsArray(data, "Directory");
                 plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Directory, "thumb");
-                res.render('shows/list.jade', { shows: data.Directory, server: req.session.server, authToken: authToken, backTrace: backTraceString});
+                http_utils.answerBasedOnAccept(req, res,'shows/list.jade', { shows: data.Directory, server: req.session.server, authToken: authToken, backTrace: backTraceString});
                 return;
             }
             if(viewgroup == "episode") {
                 data_utils.makeSureIsArray(data, "Video");
                 plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
-                res.render('episodes/various.jade', { episodes: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString});
+                http_utils.answerBasedOnAccept(req, res,'episodes/various.jade', { episodes: data.Video, server: req.session.server, authToken: authToken, backTrace: backTraceString});
                 return;
             }
 
             // TODO add audio / pictures ... later
             // Default to rendering a directory structure
             data_utils.makeSureIsArray(data, "Directory");
-            res.render('filters/list.jade', { filters: data.Directory || new Array(), server: req.session.server, backTrace: backTraceString });
+            http_utils.answerBasedOnAccept(req, res,'filters/list.jade', { filters: data.Directory || new Array(), server: req.session.server, backTrace: backTraceString });
             return;
         }, function(err) {
             console.log(err.msg);

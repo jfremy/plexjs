@@ -41,7 +41,7 @@ module.exports = function(app) {
         http_utils.request(false, options , 'xml', function(data) {
             data_utils.makeSureIsArray(data, "Video");
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
-            res.render('episodes/list', {show: req.session.show, season: req.session.season, episodes: data.Video, server: req.session.server, authToken: authToken });
+            http_utils.answerBasedOnAccept(req, res,'episodes/list', {show: req.session.show, season: req.session.season, episodes: data.Video, server: req.session.server, authToken: authToken });
         }, function(err) {
             console.log(err.msg);
             res.statusCode = err.statusCode;
@@ -52,7 +52,7 @@ module.exports = function(app) {
     // View episode
     app.get('/servers/:serverId/library/shows/:showId/seasons/:seasonId/episodes/:episodeId/', function(req, res, next){
         var authToken = plex_utils.getAuthToken(req);
-        res.render('episodes/view',{show: req.session.show, season: req.session.season, episode: req.session.episode, server: req.session.server, authToken: authToken});
+        http_utils.answerBasedOnAccept(req, res,'episodes/view',{show: req.session.show, season: req.session.season, episode: req.session.episode, server: req.session.server, authToken: authToken});
     });
     //Transcode URL
     app.get('/servers/:serverId/library/shows/:showId/seasons/:seasonId/episodes/:episodeId/hls/*', function(req, res, next) {

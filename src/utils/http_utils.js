@@ -1,6 +1,7 @@
 var http = require('http');
 var https = require('https');
 var xml2js = require('xml2js');
+var http_utils = require('../utils/http_utils');
 
 module.exports = (function() {
     function request(secure, options, type, success, failure) {
@@ -45,7 +46,16 @@ module.exports = (function() {
             }).end();
     }
 
-    function answerBasedOnAccept() {
+    function answerBasedOnAccept(req, res, viewName, data) {
+        // Two options. Either Accept content-type is set to 'application/json', in which case, we just return
+        // the json data in the response
+        // Otherwise, we return the rendered page
+        if(req.accepts('application/json') & !req.accepts('html')) {
+            res.contentType('application/json');
+            res.end(JSON.stringify(data));
+        } else {
+            res.render(viewName, data);
+        }
 
     }
 
