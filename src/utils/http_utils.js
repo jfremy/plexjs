@@ -1,6 +1,7 @@
 var http = require('http');
 var https = require('https');
 var xml2js = require('xml2js');
+var negotiate = require('express-negotiate');
 var http_utils = require('../utils/http_utils');
 
 module.exports = (function() {
@@ -50,13 +51,15 @@ module.exports = (function() {
         // Two options. Either Accept content-type is set to 'application/json', in which case, we just return
         // the json data in the response
         // Otherwise, we return the rendered page
-        if(req.accepts('application/json') & !req.accepts('html')) {
-            res.contentType('application/json');
-            res.end(JSON.stringify(data));
-        } else {
-            res.render(viewName, data);
-        }
-
+        req.negotiate({
+            "application/json": function() {
+                res.contentType('application/json');
+                res.json(data);
+            },
+            "html,default": function() {
+                res.render(viewName, data);
+            }
+        });
     }
 
     return {

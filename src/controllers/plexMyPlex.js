@@ -1,3 +1,4 @@
+var negotiate = require('express-negotiate');
 var http_utils = require('../utils/http_utils');
 
 module.exports = function(app) {
@@ -40,15 +41,33 @@ module.exports = function(app) {
             req.session.plexEmail = authentResult.user['email'];
 
             console.log("User logged in " + req.session.plexUser);
-            res.statusCode = 302;
-            res.setHeader("Location", redirectTo);
-            res.end();
+
+            req.negotiate({
+                'application/json': function() {
+                    res.statusCode = 201;
+                    var answer = {statusCode: 201, msg: "Logged in", sid: req.sessionID };
+                    res.json(answer);
+                },
+                'html,default': function() {
+                    res.statusCode = 302;
+                    res.setHeader("Location", redirectTo);
+                    res.end();
+                }
+            });
             return;
         }, function(err) {
             console.log(err);
-            res.statusCode = 302;
-            res.setHeader("Location", "/public/login.html?reason=failed&redirectTo=" + encodeURIComponent(redirectTo));
-            res.end();
+            req.negotiate({
+                'application/json': function() {
+                    res.statusCode = 401;
+                    res.json(err);
+                },
+                'html,default': function() {
+                    res.statusCode = 302;
+                    res.setHeader("Location", "/public/login.html?reason=failed&redirectTo=" + encodeURIComponent(redirectTo));
+                    res.end();
+                }
+            });
             return;
         });
     });
