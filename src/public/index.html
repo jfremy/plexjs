@@ -4,15 +4,15 @@
 	<meta charset=utf-8 />
 	<title>Plex Export</title>
 	<meta name="viewport" content="initial-scale=1,minimum-scale=1,maximum-scale=1" />
-	<link rel="icon" type="image/x-icon" href="./assets/images/favicon.ico">
+	<link rel="icon" type="image/x-icon" href="images/favicon.ico">
 
-	<link rel="stylesheet" href="assets/css/style.css" type="text/css" />
-	<link rel="stylesheet" media="all and (max-device-width: 480px)" href="assets/css/iphone.css">
-	<link rel="stylesheet" media="all and (-webkit-min-device-pixel-ratio: 2)" href="assets/css/iphone-retina.css" />
+	<link rel="stylesheet" href="css/style.css" type="text/css" />
+	<link rel="stylesheet" media="all and (max-device-width: 480px)" href="css/iphone.css">
+	<link rel="stylesheet" media="all and (-webkit-min-device-pixel-ratio: 2)" href="css/iphone-retina.css" />
 
-	<script src="../../../../../../Temp/Dachande663-Plex-Export-9ed857b/assets/js/jquery.1.4.4.min.js"></script>
-	<script src="assets/js/utils.js"></script>
-	<script src="assets/js/plex.js"></script>
+	<script src="js/jquery.js"></script>
+	<script src="js/utils.js"></script>
+	<script src="js/plex.js"></script>
 	<script>
 	jQuery(document).ready(function($){
 		PLEX.run();
@@ -31,7 +31,10 @@
 	<a href="#sidebar" id="toggle_sidebar">toggle sidebar</a>
 
 	<div id="sidebar">
-
+        <div class="sidebar-section">
+            <h2>Server</h2>
+            <ul class="generic-list" id="plex_servers_list"><li>Loading...</li></ul>
+        </div>
 		<div class="sidebar-section">
 			<h2>Library</h2>
 			<ul class="sections-list" id="plex_section_list"><li>Loading...</li></ul>
@@ -86,7 +89,7 @@
 	</div><!-- end #main -->
 
 	<div id="footer">
-		<p><a href="http://l0ke.com/bl">Plex</a> + <a href="http://l0ke.com/bb">Plex Export</a><span id="last_updated"></span></p>
+		<p>Plex<span id="last_updated"></span></p>
 	</div><!-- end #footer -->
 
 </div><!-- end #container -->

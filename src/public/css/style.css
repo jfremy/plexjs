@@ -7,7 +7,7 @@ body {
 	font-family: "Arial","Helvetica",sans-serif;
 	font-size: 12px;
 	color: #272B2D;
-	background: #9A9A9A url(../../../../../../../Temp/Dachande663-Plex-Export-9ed857b/assets/images/background.jpg);
+	background: #9A9A9A url(../images/background.jpg);
 }
 .left { float: left; }
 .right { float: right; }
@@ -17,7 +17,7 @@ body {
 	width: 920px;
 	padding: 0 20px;
 	margin: 0 auto;
-	background: url(../../../../../../../Temp/Dachande663-Plex-Export-9ed857b/assets/images/container-bg.png) repeat-y;
+	background: url(../images/container-bg.png) repeat-y;
 }
 
 
@@ -35,7 +35,7 @@ body {
 	width: 299px;
 	height: 95px;
 	margin-left: 16px;
-	background: url(../../../../../../../Temp/Dachande663-Plex-Export-9ed857b/assets/images/logo.png) no-repeat;
+	background: url(../images/logo.png) no-repeat;
 }
 #header h1 span { display: none; }
 #header p {
@@ -81,8 +81,8 @@ body {
 	padding: 6px 16px 6px 43px;
 	background: no-repeat 17px 50%;
 }
-.sections-list .movie { background-image: url(../../../../../../../Temp/Dachande663-Plex-Export-9ed857b/assets/images/icon-movie.png); }
-.sections-list .show { background-image: url(../../../../../../../Temp/Dachande663-Plex-Export-9ed857b/assets/images/icon-show.png); }
+.sections-list .movie { background-image: url(../images/icon-movie.png); }
+.sections-list .show { background-image: url(../images/icon-show.png); }
 .sections-list li em {
 	display: block;
 	float: right;
@@ -320,7 +320,7 @@ body {
 	height: 20px;
 	float: right;
 	margin: 8px 1px 0 0;
-	background: url(../../../../../../../Temp/Dachande663-Plex-Export-9ed857b/assets/images/stars.png) no-repeat bottom right;
+	background: url(../images/stars.png) no-repeat bottom right;
 }
 
 #popup-content .rating_plex.rating_50 { background-position: -98px 0; }
