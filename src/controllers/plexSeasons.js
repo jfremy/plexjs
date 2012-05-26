@@ -16,7 +16,7 @@ module.exports = function(app) {
             port: req.session.server.port,
             path: '/library/metadata/' + seasonId + '?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options, 'xml', function(data) {
+        http_utils.request(false, options, 'xml', function(data) {
             req.session.season = data.Directory;
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, [req.session.season], "thumb");
             //TODO: other images that need to be transcoded? poster, theme ...
@@ -38,7 +38,7 @@ module.exports = function(app) {
             port: req.session.server.port,
             path: '/library/metadata/' + req.param('showId') + '/children?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options , 'xml', function(data) {
+        http_utils.request(false, options , 'xml', function(data) {
             data_utils.makeSureIsArray(data, "Directory");
             plex_utils.populateRatingKeyFromKey(data.Directory);
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Directory, "thumb");

@@ -16,7 +16,7 @@ module.exports = function(app) {
             port: req.session.server.port,
             path: '/library/metadata/' + episodeId + '?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options, 'xml', function(data) {
+        http_utils.request(false, options, 'xml', function(data) {
             req.session.episode = data.Video;
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, [req.session.episode], "thumb");
             //TODO: other images that need to be transcoded? poster, theme ...
@@ -38,7 +38,7 @@ module.exports = function(app) {
             port: req.session.server.port,
             path: '/library/metadata/' + req.param('seasonId') + '/children?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options , 'xml', function(data) {
+        http_utils.request(false, options , 'xml', function(data) {
             data_utils.makeSureIsArray(data, "Video");
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
             res.render('episodes/list', {show: req.session.show, season: req.session.season, episodes: data.Video, server: req.session.server, authToken: authToken });
@@ -74,7 +74,7 @@ module.exports = function(app) {
             headers: transcodeInfo.headers,
             path: transcodeInfo.url
         };
-        http_utils(false, options, 'none', function(data) {
+        http_utils.request(false, options, 'none', function(data) {
             var playlist = data.replace("session/", "http://" + req.session.server.host + ":" + req.session.server.port + "/video/:/transcode/segmented/session/");
             res.contentType('stream.m3u8');
             res.setHeader('Content-Disposition', 'inline; filename="stream.m3u8"');

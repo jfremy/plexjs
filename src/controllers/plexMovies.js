@@ -15,7 +15,7 @@ module.exports = function(app){
             port: req.session.server.port,
             path: '/library/metadata/' + movieId + '?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options, 'xml', function(data) {
+        http_utils.request(false, options, 'xml', function(data) {
             req.session.movie = data;
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, [data.Video], "thumb");
             next();
@@ -28,6 +28,7 @@ module.exports = function(app){
         });
     });
 
+    //get details for a given movie
     app.get('/servers/:serverId/library/movies/:movieId/', function(req, res, next) {
         var authToken = plex_utils.getAuthToken(req);
         res.render('movies/view.jade', { video: req.session.movie.Video, server: req.session.server, authToken: authToken});
@@ -52,7 +53,7 @@ module.exports = function(app){
             headers: transcodeInfo.headers,
             path: transcodeInfo.url
         };
-        http_utils(false, options, 'none', function(data) {
+        http_utils.request(false, options, 'none', function(data) {
             var playlist = data.replace("session/", "http://" + req.session.server.host + ":" + req.session.server.port + "/video/:/transcode/segmented/session/");
             res.contentType('stream.m3u8');
             res.setHeader('Content-Disposition', 'inline; filename="stream.m3u8"');

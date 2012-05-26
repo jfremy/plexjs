@@ -83,6 +83,6 @@ module.exports = function(app){
             headers: headers,
             path: '/pms/servers?X-Plex-Token=' + authToken
         };
-        http_utils(true, options, 'xml', success, failure);
+        http_utils.request(true, options, 'xml', success, failure);
     }
 };

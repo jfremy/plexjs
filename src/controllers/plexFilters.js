@@ -36,7 +36,7 @@ module.exports = function(app){
             path: '/library/sections/' + req.param('sectionId') + filtersString +'?X-Plex-Token=' + encodeURIComponent(authToken)
         };
 
-        http_utils(false, options , 'xml', function(data) {
+        http_utils.request(false, options , 'xml', function(data) {
             var viewgroup = data["viewGroup"] || "";
             // List of videos
             if(viewgroup == "movie") {
@@ -78,6 +78,6 @@ module.exports = function(app){
             port: server.port,
             path: '/library/sections/' + sectionId + '?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options, 'xml', success, failure);
+        http_utils.request(false, options, 'xml', success, failure);
     }
 };

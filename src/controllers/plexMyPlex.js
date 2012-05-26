@@ -34,7 +34,7 @@ module.exports = function(app) {
                 'X-Plex-Client-Identifier': '123456789'
             }
         };
-        http_utils(true, signinOptions, 'json', function(authentResult) {
+        http_utils.request(true, signinOptions, 'json', function(authentResult) {
             req.session.plexToken = authentResult.user['authentication_token'];
             req.session.plexUser = authentResult.user['username'];
             req.session.plexEmail = authentResult.user['email'];

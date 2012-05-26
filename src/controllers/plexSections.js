@@ -46,6 +46,6 @@ module.exports = function(app){
             port: server.port,
             path: '/library/sections/?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options, 'xml', success, failure);
+        http_utils.request(false, options, 'xml', success, failure);
     }
 };

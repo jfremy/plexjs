@@ -16,7 +16,7 @@ module.exports = function(app) {
             port: req.session.server.port,
             path: '/library/metadata/' + showId + '?X-Plex-Token=' + encodeURIComponent(authToken)
         };
-        http_utils(false, options, 'xml', function(data) {
+        http_utils.request(false, options, 'xml', function(data) {
             req.session.show = data.Directory;
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, [req.session.show], "thumb");
             //TODO: other images that need to be transcoded? poster, theme ...

@@ -29,8 +29,8 @@ URLs
 /video/:/transcode/segmented/ping
 /music/:/transcode/generic.mp3?offset=[offset]&format=mp3&audioCodec=libmp3lame&audioBitrate=320&audioSamples=44100&url=[url]&X-Plex-Client-Capabilities
 /:/progress?key=[mediaKey]&identifier=com.plexapp.plugins.library&time=[time]&state=[state]
-/:/scrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library
-/:/unscrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library
+/:/scrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library       -> mark as viewed
+/:/unscrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library     -> mark as not viewed
 /:/rate?key=[mediaKey]&identifier=com.plexapp.plugins.library&rating=[rating]
 
 
