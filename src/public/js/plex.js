@@ -341,10 +341,10 @@ var PLEX = {
 		var items_to_show = {};
 		$.each(all_items, function(key, item) {
 			if (seen == "true") {
-				if (item.view_count == 0) return;
+				if (!item.viewCount) return;
 			};
 			if (seen == "false") {
-				if (item.view_count > 0) return;
+				if (Number(item.viewCount) > 0) return;
 			};
 			items_to_show[key] = item;
 		});
@@ -354,10 +354,11 @@ var PLEX = {
 
 	change_sort: function(arg_new_sort_key) {
 		var new_sort_key = "title";
+        var sort_fn = sortTitle;
 		switch(arg_new_sort_key) {
-			case "release": new_sort_key = "release"; break;
-			case "rating": new_sort_key = "rating"; break;
-			case "addedAt": new_sort_key = "addedAt"; break;
+			case "release": new_sort_key = "release"; sort_fn = sortRelease; break;
+			case "rating": new_sort_key = "rating"; sort_fn = sortRating; break;
+			case "addedAt": new_sort_key = "addedAt"; sort_fn = sortAdded; break;
 		}
 
 		if(new_sort_key == PLEX.current_sort_key) {
@@ -365,6 +366,34 @@ var PLEX = {
 		} else {
 			PLEX.current_sort_key = new_sort_key;
 		}
+
+
+        var api_order = PLEX.current_sort_order=="desc" ? -1: 1;
+        function sortTitle(a,b) {
+            if(!a.titleSort) a.titleSort = a.title;
+            if(!b.titleSort) b.titleSort = b.title;
+            return a.titleSort.toLowerCase() > b.titleSort.toLowerCase()? api_order : a.titleSort.toLowerCase() < b.titleSort.toLowerCase() ? -api_order : 0;
+        }
+        function sortRelease(a,b) {
+            if(!a.originallyAvailableAt) a.originallyAvailableAt = "0000-00-00";
+            if(!b.originallyAvailableAt) b.originallyAvailableAt = "0000-00-00";
+            return a.originallyAvailableAt > b.originallyAvailableAt ? api_order : a.originallyAvailableAt < b.originallyAvailableAt ? -api_order : 0;
+        }
+        function sortRating(a,b) {
+            if(!a.rating) a.rating = 0;
+            if(!b.rating) b.rating = 0;
+            return (Number(a.rating) - Number(b.rating))* api_order;
+        }
+        function sortAdded(a,b) {
+            if(!a.addedAt) a.addedAt = 0;
+            if(!b.addedAt) b.addedAt = 0;
+            return (Number(a.addedAt) - Number(b.addedAt))* api_order;
+        }
+
+        PLEX.items.sort(sort_fn);
+
+
+
 
 		$("li", PLEX._sorts_list).removeClass("current");
 		$("li em", PLEX._sorts_list).remove();
@@ -600,9 +629,6 @@ var PLEX = {
         return;
     },
     init_event_handlers: function() {
-
-        //PLEX.display_sections_list();
-
         $(PLEX._servers_list).on("click", "li", function(){
             PLEX.display_server($(this).attr("data-server"));
         });
@@ -661,42 +687,16 @@ var PLEX = {
 		});
 
 		$(PLEX._item_list).on("click", "li", function(){
-			//PLEX.display_item($(this).attr("data-item"));
             PLEX.load_item($(this).attr("data-item"));
 		});
 
 		$(document).on("click", "#popup-footer span", function(){
-			//PLEX.display_item($(this).attr("data-item"));
             PLEX.load_item($(this).attr("data-item"));
 		});
 
 
 		PLEX._popup_overlay.click(function(){
 			PLEX.hide_item();
-		});
-
-
-		$(document).keyup(function(event) {
-			if(event.shiftKey || event.metaKey || event.altKey || event.ctrlKey) return;
-			switch(event.which) {
-				case 27: // esc
-				//case 88: // x
-					PLEX.hide_item();
-					break;
-				case 75: // k
-					if(PLEX.previous_item_id>0) {
-						PLEX.display_item(PLEX.previous_item_id);
-					}
-					break;
-				case 74: // j
-					if(PLEX.next_item_id>0) {
-						PLEX.display_item(PLEX.next_item_id);
-					} else if(!PLEX.popup_visible) { // Show first item if none others
-						var first_item = parseInt($(":first", PLEX._item_list).attr("data-item"));
-						if(first_item>0) PLEX.display_item(first_item);
-					}
-					break;
-			}
 		});
 
 		$(document).on("click",".popup-close", function(){
