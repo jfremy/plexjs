@@ -681,7 +681,7 @@ var PLEX = {
 			if(event.shiftKey || event.metaKey || event.altKey || event.ctrlKey) return;
 			switch(event.which) {
 				case 27: // esc
-				case 88: // x
+				//case 88: // x
 					PLEX.hide_item();
 					break;
 				case 75: // k
