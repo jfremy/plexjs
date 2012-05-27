@@ -596,7 +596,6 @@ var PLEX = {
 		PLEX._popup_overlay = $("#popup-overlay");
 		PLEX._popup_container = $("#popup-container");
 
-        PLEX.init_event_handlers();
         PLEX.load_servers();
         return;
     },
@@ -671,11 +670,11 @@ var PLEX = {
             PLEX.load_item($(this).attr("data-item"));
 		});
 
-        /*
+
 		PLEX._popup_overlay.click(function(){
 			PLEX.hide_item();
 		});
-		*/
+
 
 		$(document).keyup(function(event) {
 			if(event.shiftKey || event.metaKey || event.altKey || event.ctrlKey) return;
@@ -788,6 +787,9 @@ var PLEX = {
                 console.log("Loaded servers");
                 PLEX.servers = data.plexServers;
                 PLEX.display_servers_list();
+
+                PLEX.init_event_handlers();
+
                 $("li:first", PLEX._servers_list).click();
             },
             error: function(jqXHR, textStatus, errorThrown) {
