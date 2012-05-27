@@ -79,4 +79,43 @@ module.exports = function(app) {
             return;
         });
     });
+
+    app.get('/logout', function(req, res, next) {
+        var signoutOptions = {
+            host: 'my.plexapp.com',
+            path: '/users/sign_out.json'
+        };
+        http_utils.request(true, signoutOptions, 'text', function() {
+            console.log("User logged out: " + req.session.plexUser);
+            delete req.session.plexToken;
+
+            req.negotiate({
+                'application/json': function() {
+                    res.statusCode = 200;
+                    var answer = {statusCode: 200, msg: "Logged out", sid: req.sessionID };
+                    res.json(answer);
+                },
+                'html,default': function() {
+                    res.statusCode = 302;
+                    res.setHeader("Location", "/public/login.html");
+                    res.end();
+                }
+            });
+            return;
+        }, function(err) {
+            console.log(err);
+            req.negotiate({
+                'application/json': function() {
+                    res.statusCode = 401;
+                    res.json(err);
+                },
+                'html,default': function() {
+                    res.statusCode = 302;
+                    res.setHeader("Location", "/public/login.html?reason=failed&redirectTo=" + encodeURIComponent(redirectTo));
+                    res.end();
+                }
+            });
+            return;
+        });
+    });
 };

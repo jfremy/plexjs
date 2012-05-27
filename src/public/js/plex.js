@@ -717,6 +717,22 @@ var PLEX = {
             PLEX.playMedia(ratingKey);
         });
 
+        $("#sign_out").on("click", function(event) {
+            $.ajax({
+                type: "GET",
+                url: "/logout",
+                dataType: "json",
+                success: function(data, textStatus, jqXHR) {
+                    console.log("Signed out");
+                    PLEX.display_login();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Sign out failed");
+                }
+            })
+        });
+
+
         $(document).on("inview","img[data-src]", function(event, isInView, visiblePartX, visiblePartY) {
             if(!isInView) return;
             var img = $(this);

@@ -5,6 +5,8 @@ html(lang="en")
     script(src='/public/js/jquery.js')
   body
     h1 Plex Media Servers
+    p
+      a(href='/logout') Sign out
     each server,i in plexServers
       div
         a(href='#{server.machineIdentifier}/sections/') #{server.name} - #{server.host}:#{server.port}
