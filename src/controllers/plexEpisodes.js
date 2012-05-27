@@ -33,15 +33,26 @@ module.exports = function(app) {
     // List
     app.get('/servers/:serverId/library/shows/:showId/seasons/:seasonId/episodes/', function(req, res, next){
         var authToken = plex_utils.getAuthToken(req);
+        var url = "/library/metadata/";
+        var viewName = 'episodes/list';
+
+        if(req.param('seasonId') == "allLeaves") {
+            url += req.param('showId') + '/allLeaves';
+            viewName = 'episodes/various';
+        } else {
+            url += req.param('seasonId') + '/children';
+        }
+        url += '?X-Plex-Token=' + encodeURIComponent(authToken);
+
         var options ={
             host: req.session.server.host,
             port: req.session.server.port,
-            path: '/library/metadata/' + req.param('seasonId') + '/children?X-Plex-Token=' + encodeURIComponent(authToken)
+            path: url
         };
         http_utils.request(false, options , 'xml', function(data) {
             data_utils.makeSureIsArray(data, "Video");
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, data.Video, "thumb");
-            http_utils.answerBasedOnAccept(req, res,'episodes/list', {show: req.session.show, season: req.session.season, episodes: data.Video, server: req.session.server, authToken: authToken });
+            http_utils.answerBasedOnAccept(req, res,viewName, {show: req.session.show, season: req.session.season, episodes: data.Video, server: req.session.server, authToken: authToken });
         }, function(err) {
             console.log(err.msg);
             res.statusCode = err.statusCode;

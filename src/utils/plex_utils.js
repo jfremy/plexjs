@@ -63,7 +63,7 @@ module.exports = (function() {
             var elem = array[i]
             if(!elem.hasOwnProperty("ratingKey") && elem.hasOwnProperty("key")) {
                 var idx = elem.key.lastIndexOf("/");
-                elem.ratingKey = elem.key.substring(idx);
+                elem.ratingKey = elem.key.substring(idx+1);
             }
         }
     }

@@ -10,6 +10,11 @@ module.exports = function(app) {
             next();
             return;
         }
+        if(seasonId == "allLeaves") {
+            // Special case, we are getting every single episode
+            next();
+            return;
+        }
         var authToken = plex_utils.getAuthToken(req);
         var options = {
             host: req.session.server.host,
