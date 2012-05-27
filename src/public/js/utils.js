@@ -1,5 +1,5 @@
-function episode_tag(season, episode) {
-	var s = season.index;
+function episode_tag(episode) {
+	var s = episode.parentIndex;
 	var e = episode.index;
 	r = (s<10)?'S0'+s:'S'+s;
 	r += (e<10)?'E0'+e:'E'+e;

@@ -25,17 +25,6 @@ var PLEX = {
 	filter_delay: 350,
 	popup_visible: false,
 
-
-	load_data: function(aData) {
-		if(!aData || !aData.status || aData.status!='success' || aData.num_sections==0) return false;
-		$.each(aData.sections, function(section_key, section_data){
-			PLEX.sections[section_key] = section_data;
-		});
-		PLEX.section_display_order = aData.section_display_order;
-		PLEX.data_loaded = true;
-	}, // end func: load_data
-
-
 	display_sections_list: function() {
 		var section_list_html = '';
 		$.each(PLEX.sections, function(i,section){
@@ -543,24 +532,28 @@ var PLEX = {
 			popup_content += '</ul>';
 		}
 
-		if(PLEX.current_item.num_seasons && PLEX.current_item.num_seasons>0) {
+		if(PLEX.current_item.leafCount && Number(PLEX.current_item.leafCount)>0) {
 			popup_content += '<div id="popup_seasons"><h4>Season Browser</h4><table><tr><td id="popup_seasons_seasons"><ul>';
 
-			$.each(PLEX.current_item.season_sort_order, function(i, key){
-				var season = PLEX.current_item.seasons[key];
-				popup_content += '<li data-season="'+season.key+'">'+season.title+'</li>';
-			});
+            if(!$.isArray(PLEX.current_item.episodes)) PLEX.current_item.episodes = [PLEX.current_item.episodes];
+            var seasons = {}
+            $.each(PLEX.current_item.episodes, function(i,v) {
+                if(!seasons.hasOwnProperty(v.parentIndex)) {
+                    popup_content += '<li data-season="'+ v.parentIndex +'">Season '+ v.parentIndex+'</li>';
+                    seasons[v.parentIndex] = true;
+                }
+            });
 			popup_content += '</ul></td><td id="popup_seasons_episodes"></td><td id="popup_seasons_episode"></td></tr></table></div>';
 
 			$("#popup_seasons_seasons li").live("click", function(){
 				$("#popup_seasons_seasons li").removeClass("current");
 				$(this).addClass("current");
 				var season_key = $(this).attr("data-season");
-				var season = PLEX.current_item.seasons[season_key];
 				var html = '<ul>';
-				$.each(season.episode_sort_order, function(i, key){
-					var episode = season.episodes[key];
-					html += '<li data-season="'+season.key+'" data-episode="'+episode.key+'">'+episode.index+'. '+episode.title+'</li>';
+				$.each(PLEX.current_item.episodes, function(i, episode){
+                    if(episode.parentIndex == season_key) {
+                        html += '<li data-season="'+season_key+'" data-episode="'+ i +'">'+episode.index+'. '+episode.title+'</li>';
+                    }
 				});
 				html += '</ul>';
 				$("#popup_seasons_episodes").html(html);
@@ -569,12 +562,10 @@ var PLEX = {
 			$("#popup_seasons_episodes li").live("click", function(){
 				$("#popup_seasons_episodes li").removeClass("current");
 				$(this).addClass("current");
-				var season_key = $(this).attr("data-season");
-				var episode_key = $(this).attr("data-episode");
-				var season = PLEX.current_item.seasons[season_key];
-				var episode = season.episodes[episode_key];
+                var episode_key = Number($(this).attr("data-episode"));
+				var episode = PLEX.current_item.episodes[episode_key];
 				var minutes = Math.round(episode.duration/60000);
-				var html = '<h5>'+episode.title+'</h5><p class="meta">'+episode_tag(season,episode)+' | '+minutes+' '+inflect(minutes,'minute')+' | Rated '+episode.rating+'</p><p>'+episode.summary+'</p>';
+				var html = '<h5>'+episode.title+'</h5><img class="playMovie" data-movie="'+ episode.ratingKey +'"src="images/play_button.png" height="16" /><p class="meta">'+episode_tag(episode)+' | '+minutes+' '+inflect(minutes,'minute')+' | Rated '+episode.rating+'</p><p>'+episode.summary+'</p>';
 				$("#popup_seasons_episode").html(html);
 			});
 
@@ -591,7 +582,7 @@ var PLEX = {
 
 	hide_item: function() {
 		PLEX.popup_visible = false;
-		window.location.hash = PLEX.current_section.key;
+		//window.location.hash = PLEX.current_section.key;
 		PLEX._popup_overlay.fadeOut();
 		PLEX._popup_container.fadeOut();
 	}, // end func: hide_item
@@ -634,7 +625,6 @@ var PLEX = {
         });
 
 		$(PLEX._sections_list).on("click","li", function(){
-			//PLEX.display_section($(this).attr("data-section"));
             PLEX.load_items($(this).attr("data-section"));
 		});
 
@@ -815,7 +805,7 @@ var PLEX = {
     display_server: function (server_id) {
         if(PLEX.servers[server_id].machineIdentifier == PLEX.current_server.machineIdentifer) return;
         PLEX.current_server = PLEX.servers[server_id];
-        window.location.hash = server_id;
+        //window.location.hash = server_id;
 
         $("li", PLEX._servers_list).removeClass("current");
         $("li[data-server="+server_id+"]").addClass("current");
@@ -867,14 +857,14 @@ var PLEX = {
         if(PLEX.current_section.type == "movie") {
             url += "movies/" + PLEX.items[item_id].ratingKey +"/";
         } else {
-            url += "shows/" + PLEX.items[item_id].ratingKey + "/seasons/";
+            url += "shows/" + PLEX.items[item_id].ratingKey + "/seasons/allLeaves/episodes/";
         }
         $.ajax({
             url: url,
             dataType: "json",
             success: function(data, textStatus, jqXHR) {
                 console.log("Loaded item");
-                if(data.show) data.show.seasons = data.seasons;
+                if(data.show) data.show.episodes = data.episodes;
                 PLEX.current_item = data.video ? data.video : data.show;
                 PLEX.display_item(item_id);
             },
