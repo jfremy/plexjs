@@ -314,6 +314,18 @@ body {
 	margin-left: 175px;
 }
 
+#popup-content-player {
+    width: 535px;
+    height: 322px;
+    margin-left: 175px;
+    display:none;
+}
+
+#popup-player {
+    width: 100%;
+    height: 100%
+}
+
 #popup-content .rating {
 	display: block;
 	width: 100px;

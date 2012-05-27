@@ -508,10 +508,11 @@ var PLEX = {
 				popup_content += '<li><strong>Video:</strong> codec: '+media.videoCodec+', framerate: '+media.videoFrameRate+ ((media.videoResolution != undefined && media.videoResolution>0)?', vert: '+media.videoResolution:'') + ((media.aspectRatio != undefined && media.aspectRatio>0)?', aspect ratio: '+media.aspectRatio:'') +'</li>';
 				popup_content += '<li><strong>Audio:</strong> codec: '+media.audioCodec+', channels: '+media.audioChannels+'</li>';
 				if(media.total_size != false) popup_content += '<li><strong>File:</strong> '+hl_bytes_to_human(media.total_size)+' @ '+media.bitrate+'kbps</li>';
+
+                popup_content += '<li class="playMovie" data-movie="'+ PLEX.current_item.ratingKey +'"><strong>Play: </strong><img src="images/play_button.png" height="16" /></li>'
 			}
 			popup_content += '</ul>';
 		}
-
 
 		if(PLEX.current_item.num_seasons && PLEX.current_item.num_seasons>0) {
 			popup_content += '<div id="popup_seasons"><h4>Season Browser</h4><table><tr><td id="popup_seasons_seasons"><ul>';
@@ -552,7 +553,9 @@ var PLEX = {
 
 		popup_content += '</div>';
 
-		return popup_header + '<div id="popup-outer"><div id="popup-inner">' + popup_sidebar + popup_content + '<div class="clear"></div></div>' + popup_footer + '</div>';
+        var popup_player = '<div id="popup-content-player"><div id="popup-player"></div></div>';
+
+		return popup_header + '<div id="popup-outer"><div id="popup-inner">' + popup_sidebar + popup_player + popup_content + '<div class="clear"></div></div>' + popup_footer + '</div>';
 
 	}, // end func: generate_item_content
 
@@ -719,6 +722,11 @@ var PLEX = {
 		} else {
 			$("li:first", PLEX._servers_list).click();
 		} */
+        $(document).on("click", ".playMovie", function(event) {
+            var e = $(this);
+            var ratingKey = e.attr("data-movie");
+            PLEX.playMedia(ratingKey);
+        });
 
         $(document).on("inview","img[data-src]", function(event, isInView, visiblePartX, visiblePartY) {
             if(!isInView) return;
@@ -909,6 +917,29 @@ var PLEX = {
             return 0;
         });
         return result;
+    },
+    playMedia: function(mediaId) {
+        $("#popup-content").hide();
+        $("#popup-content-player").show();
+        var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + mediaId +"/hls/start.m3u8?quality=7";
+        jwplayer('popup-player').setup({
+            modes: [ {
+                type: 'flash',
+                src:  '/public/swf/player.swf',
+                config: {
+                    file: url,
+                    provider:'/public/swf/adaptiveProvider.swf'
+                }
+            },
+                {
+                    type:'html5',
+                    config: {
+                        file: url
+                    }
+                }
+            ],
+            autostart: true
+        });
     },
     joinOnObjectArray: function(array, separator, key) {
         var result = "";
