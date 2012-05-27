@@ -152,7 +152,7 @@ var PLEX = {
 			}
 
 			$("li", PLEX._genre_list).removeClass("current");
-			$("li[data-genre="+PLEX.current_genre+"]").addClass("current");
+			$("li[data-genre='"+PLEX.current_genre+"']").addClass("current");
 
 			PLEX._genre_list_section.show();
 		} else {
@@ -198,7 +198,7 @@ var PLEX = {
 		}
 
 		$("li", PLEX._director_list).removeClass("current");
-		$("li[data-director="+PLEX.current_director+"]").addClass("current");
+		$("li[data-director='"+PLEX.current_director+"']").addClass("current");
 
 		PLEX._director_list_section.show();
 
@@ -237,7 +237,9 @@ var PLEX = {
 
 	display_items: function() {
 
-		var items = PLEX.items
+		var items = PLEX.items;
+        // If there is only one item, then it will be an object rather than an array
+        if(!$.isArray(items)) items = [ items ];
 		
 		if (PLEX.current_seen != "all") {
 			items = PLEX.filter_items_by_seen(items, PLEX.current_seen);
@@ -268,7 +270,7 @@ var PLEX = {
         $.each(items, function(i,v) {
             var thumb = "images/default.png";
             var data_src = v.thumbTranscodeUrl ? ' data-src="' + v.thumbTranscodeUrl + '&width=150&height=250" ': "";
-            html_string += '<li data-item="'+v.key+'" class="item"><img src="'+ thumb + '"' + data_src + ' width="150" /><h4>'+v.title+'</h4></li>';
+            html_string += '<li data-item="'+ i +'" class="item"><img src="'+ thumb + '"' + data_src + ' width="150" /><h4>'+v.title+'</h4></li>';
             num_items++;
         });
 
@@ -396,9 +398,11 @@ var PLEX = {
 
 	display_item: function(item_id) {
 		var item_id = parseInt(item_id);
-		PLEX.current_item = PLEX.items[item_id];
-		window.location.hash = PLEX.current_section.key+"/"+PLEX.current_item.key;
-		var popup_html = PLEX.generate_item_content();
+		// Already done
+		//PLEX.current_item = PLEX.items[item_id];
+
+        //window.location.hash = PLEX.current_section.key+"/"+PLEX.current_item.key;
+		var popup_html = PLEX.generate_item_content(item_id);
 		PLEX._popup_overlay.fadeIn().height($(document).height());
 		PLEX._popup_container
 			.html(popup_html)
@@ -412,22 +416,22 @@ var PLEX = {
 
 
 
-	generate_item_content: function() {
+	generate_item_content: function(item_id) {
 
 		var popup_header = '<div id="popup-header"><p class="right"><span class="popup-close">Close</span></p><p>Library &raquo; '+PLEX.current_section.title+' &raquo; '+PLEX.current_item.title+'</p></div>';
 
-		var _current_item = $("li[data-item="+PLEX.current_item.key+"]", PLEX._item_list);
+		var _current_item = $("li[data-item='"+item_id+"']", PLEX._item_list);
 		var previous_item_id = parseInt(_current_item.prev().attr("data-item"));
 		var next_item_id = parseInt(_current_item.next().attr("data-item"));
 
 
-		PLEX.previous_item_id = (previous_item_id>0)?previous_item_id:0;
-		PLEX.next_item_id = (next_item_id>0)?next_item_id:0;
+		PLEX.previous_item_id = (previous_item_id>=0)?previous_item_id:-1;
+		PLEX.next_item_id = (next_item_id>=0)?next_item_id:-1;
 
 
 		var popup_footer = '<div id="popup-footer">';
-		if(next_item_id>0) popup_footer += '<span class="right" data-item="'+PLEX.current_section.items[next_item_id].key+'">'+PLEX.current_section.items[next_item_id].title+' &raquo;</span>';
-		if(previous_item_id>0) popup_footer += '<span data-item="'+PLEX.current_section.items[previous_item_id].key+'">&laquo; '+PLEX.current_section.items[previous_item_id].title+'</span></div>';
+		if(next_item_id>=0) popup_footer += '<span class="right" data-item="'+next_item_id+'">'+PLEX.items[next_item_id].title+' &raquo;</span>';
+		if(previous_item_id>=0) popup_footer += '<span data-item="'+previous_item_id+'">&laquo; '+PLEX.items[previous_item_id].title+'</span></div>';
 		popup_footer += '<div class="clear"></div></div>';
 
 		var _img = $("img", _current_item);
@@ -444,21 +448,23 @@ var PLEX = {
 			var minutes = Math.round(PLEX.current_item.duration/60000);
 			popup_sidebar_meta += '<li>Duration: '+minutes+' '+inflect(minutes,'minute')+'</li>';
 		}
-		if(PLEX.current_item.studio != false) popup_sidebar_meta += '<li>Studio: '+PLEX.current_item.studio+'</li>';
-		if(PLEX.current_item.release_year != false) popup_sidebar_meta += '<li>Released: '+PLEX.current_item.release_year+'</li>';
-		if(PLEX.current_item.content_rating != false) popup_sidebar_meta += '<li>Rated: '+PLEX.current_item.content_rating+'</li>';
-		if(PLEX.current_item.num_seasons > 0) popup_sidebar_meta += '<li>Seasons: '+PLEX.current_item.num_seasons+'</li>';
-		if(PLEX.current_item.num_episodes > 0) popup_sidebar_meta += '<li>Episodes: '+PLEX.current_item.num_episodes+'</li>';
-		if(PLEX.current_item.view_count > 0) popup_sidebar_meta += '<li>Watched: '+PLEX.current_item.view_count+' '+inflect(PLEX.current_item.view_count,'time')+'</li>';
+		if(PLEX.current_item.hasOwnProperty("studio")) popup_sidebar_meta += '<li>Studio: '+PLEX.current_item.studio+'</li>';
+		if(PLEX.current_item.hasOwnProperty("year")) popup_sidebar_meta += '<li>Released: '+PLEX.current_item.year+'</li>';
+		if(PLEX.current_item.hasOwnProperty("contentRating")) popup_sidebar_meta += '<li>Rated: '+PLEX.current_item.contentRating+'</li>';
+		//TODO: update to new data model
+        if(PLEX.current_item.hasOwnProperty("num_seasons")) popup_sidebar_meta += '<li>Seasons: '+PLEX.current_item.num_seasons+'</li>';
+		if(PLEX.current_item.hasOwnProperty("num_episodes")) popup_sidebar_meta += '<li>Episodes: '+PLEX.current_item.num_episodes+'</li>';
+		if(PLEX.current_item.hasOwnProperty("view_count")) popup_sidebar_meta += '<li>Watched: '+PLEX.current_item.view_count+' '+inflect(PLEX.current_item.view_count,'time')+'</li>';
 
 		popup_sidebar_meta += '</ul>';
 		var popup_sidebar = '<div id="popup-sidebar"><img src="'+img_thumb+'" width="150" height="'+img_height+'" />'+popup_sidebar_meta+'</div>';
 
 		var rating_tag = '';
-		if(PLEX.current_item.user_rating != false) {
+		if(PLEX.current_item.hasOwnProperty("user_rating")) {
+            //TODO: figure out the name of the property in my object
 			var rating = PLEX.current_item.user_rating;
 			var rating_source = 'user';
-		} else if(PLEX.current_item.rating != false) {
+		} else if(PLEX.current_item.hasOwnProperty("rating")) {
 			var rating = PLEX.current_item.rating;
 			var rating_source = 'plex';
 		}
@@ -469,24 +475,39 @@ var PLEX = {
 
 		var popup_content = '<div id="popup-content">'+rating_tag+'<h3>'+PLEX.current_item.title+'</h3>';
 
-		if(PLEX.current_item.tagline != false) popup_content += '<h4>'+PLEX.current_item.tagline+'</h4>';
-		if(PLEX.current_item.summary != false) popup_content += '<div id="popup-summary"><p>'+PLEX.current_item.summary+'</p></div>';
+		if(PLEX.current_item.hasOwnProperty("tagline")) popup_content += '<h4>'+PLEX.current_item.tagline+'</h4>';
+		if(PLEX.current_item.hasOwnProperty("summary")) popup_content += '<div id="popup-summary"><p>'+PLEX.current_item.summary+'</p></div>';
 
 		if(
-			PLEX.current_item.director && PLEX.current_item.director.length > 0 ||
-			typeof PLEX.current_item.genre !="undefined" && PLEX.current_item.genre.length > 0 ||
-			PLEX.current_item.role && PLEX.current_item.role.length > 0 ||
-			PLEX.current_item.media
+			PLEX.current_item.hasOwnProperty("Director") ||
+			PLEX.current_item.hasOwnProperty("Genre") ||
+			PLEX.current_item.hasOwnProperty("Role") ||
+			PLEX.current_item.hasOwnProperty("Media")
 		) {
 			popup_content += '<ul id="popup-content-meta">';
-			if(PLEX.current_item.director) popup_content += '<li><strong>Directed by:</strong> '+PLEX.current_item.director.join(", ")+'</li>';
-			if(PLEX.current_item.role) popup_content += '<li><strong>Starring:</strong> '+PLEX.current_item.role.join(", ")+'</li>';
-			if(PLEX.current_item.genre) popup_content += '<li><strong>Genre:</strong> '+PLEX.current_item.genre.join(", ")+'</li>';
-			if(PLEX.current_item.media) {
-				var media = PLEX.current_item.media;
-				popup_content += '<li><strong>Video:</strong> codec: '+media.video_codec+', framerate: '+media.video_framerate+ ((media.video_resolution != undefined && media.video_resolution>0)?', vert: '+media.video_resolution:'') + ((media.aspect_ratio != undefined && media.aspect_ratio>0)?', aspect ratio: '+media.aspect_ratio:'') +'</li>';
-				popup_content += '<li><strong>Audio:</strong> codec: '+media.audio_codec+', channels: '+media.audio_channels+'</li>';
-				if(media.total_size != false) popup_content += '<li><strong>File:</strong> '+hl_bytes_to_human(media.total_size)+' @ '+media.bitrate+'bps</li>';
+			if(PLEX.current_item.hasOwnProperty("Director")) {
+                var d = $.isArray(PLEX.current_item.Director) ? PLEX.current_item.Director : [PLEX.current_item.Director];
+                popup_content += '<li><strong>Directed by:</strong> '+PLEX.joinOnObjectArray(d, ", ", "tag")+'</li>';
+            }
+			if(PLEX.current_item.hasOwnProperty("Role")) {
+                var r = $.isArray(PLEX.current_item.Role) ? PLEX.current_item.Role : [PLEX.current_item.Role];
+                popup_content += '<li><strong>Starring:</strong> '+PLEX.joinOnObjectArray(r, ", ", "tag")+'</li>';
+            }
+			if(PLEX.current_item.hasOwnProperty("Genre")) {
+                var g = $.isArray(PLEX.current_item.Genre) ? PLEX.current_item.Genre : [PLEX.current_item.Genre];
+                popup_content += '<li><strong>Genre:</strong> '+PLEX.joinOnObjectArray(g, ", ", "tag")+'</li>';
+            }
+			if(PLEX.current_item.hasOwnProperty("Media")) {
+				var media = PLEX.current_item.Media;
+
+                // Compute total size as media can be composed of multiple parts.
+                media.total_size = 0;
+                if(!$.isArray(media.Part)) media.Part = [media.Part];
+                $.each(media.Part, function(i,v) { media.total_size += Number(v.size);});
+
+				popup_content += '<li><strong>Video:</strong> codec: '+media.videoCodec+', framerate: '+media.videoFrameRate+ ((media.videoResolution != undefined && media.videoResolution>0)?', vert: '+media.videoResolution:'') + ((media.aspectRatio != undefined && media.aspectRatio>0)?', aspect ratio: '+media.aspectRatio:'') +'</li>';
+				popup_content += '<li><strong>Audio:</strong> codec: '+media.audioCodec+', channels: '+media.audioChannels+'</li>';
+				if(media.total_size != false) popup_content += '<li><strong>File:</strong> '+hl_bytes_to_human(media.total_size)+' @ '+media.bitrate+'kbps</li>';
 			}
 			popup_content += '</ul>';
 		}
@@ -638,11 +659,13 @@ var PLEX = {
 		});
 
 		$(PLEX._item_list).on("click", "li", function(){
-			PLEX.display_item($(this).attr("data-item"));
+			//PLEX.display_item($(this).attr("data-item"));
+            PLEX.load_item($(this).attr("data-item"));
 		});
 
 		$(document).on("click", "#popup-footer span", function(){
-			PLEX.display_item($(this).attr("data-item"));
+			//PLEX.display_item($(this).attr("data-item"));
+            PLEX.load_item($(this).attr("data-item"));
 		});
 
         /*
@@ -829,6 +852,32 @@ var PLEX = {
         });
 
     },
+    load_item: function(item_id) {
+        var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/";
+        if(PLEX.current_section.type == "movie") {
+            url += "movies/" + PLEX.items[item_id].ratingKey +"/";
+        } else {
+            url += "shows/" + PLEX.items[item_id].ratingKey + "/seasons/";
+        }
+        $.ajax({
+            url: url,
+            dataType: "json",
+            success: function(data, textStatus, jqXHR) {
+                console.log("Loaded item");
+                if(data.show) data.show.seasons = data.seasons;
+                PLEX.current_item = data.video ? data.video : data.show;
+                PLEX.display_item(item_id);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Load item failed");
+                if(jqXHR.status == 401) {
+                    PLEX.display_login();
+                } else {
+                    console.log(errorThrown);
+                }
+            }
+        });
+    },
     build_genres_list: function(items) {
         var genres = {};
         var result = [];
@@ -858,6 +907,15 @@ var PLEX = {
             if(a.genre > b.genre) return -1;
             if(a.genre < b.genre) return 1;
             return 0;
+        });
+        return result;
+    },
+    joinOnObjectArray: function(array, separator, key) {
+        var result = "";
+        var l = array.length;
+        $.each(array, function(i,v) {
+            result += v[key]
+            if(i < l-1) result += separator;
         });
         return result;
     },
