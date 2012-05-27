@@ -4,9 +4,17 @@ var http_utils = require('../utils/http_utils');
 module.exports = function(app) {
     app.all('/*', function(req, res, next) {
         if(!req.session.plexToken && req.url.indexOf("/public/") != 0 && req.url.indexOf('/login') != 0 ) {
-            res.statusCode = 302;
-            res.setHeader("Location", "/public/login.html?redirectTo=" + encodeURIComponent(req.url));
-            res.end();
+            req.negotiate({
+                'application/json': function() {
+                    res.statusCode = 401;
+                    res.json({ statusCode: 401, msg: "Unauthorized"});
+                },
+                'html,default': function() {
+                    res.statusCode = 302;
+                    res.setHeader("Location", "/public/login.html?redirectTo=" + encodeURIComponent(req.url));
+                    res.end();
+                }
+            });
             return;
         }
         next();

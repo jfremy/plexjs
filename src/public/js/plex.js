@@ -1,13 +1,21 @@
+"use strict";
+var seen_count = 0;
+var unseen_count = 0;
+var num_hidden = 0;
+
 var PLEX = {
 
-	sections: {},
-	total_items: 0,
+	servers: [],
+    current_server: false,
+    sections: [],
 	current_section: false,
+    items: [],
 	current_item: false,
 	previous_item_id: 0,
 	next_item_id: 0,
 	current_sort_key: "title",
 	current_sort_order: "asc",
+    genres: [],
 	current_genre: "all",
 	current_director: "all",
 	show_all_genres: false,
@@ -16,7 +24,6 @@ var PLEX = {
 	filter_timeout: false,
 	filter_delay: 350,
 	popup_visible: false,
-	last_updated: "none",
 
 
 	load_data: function(aData) {
@@ -24,18 +31,15 @@ var PLEX = {
 		$.each(aData.sections, function(section_key, section_data){
 			PLEX.sections[section_key] = section_data;
 		});
-		PLEX.total_items = aData.total_items;
 		PLEX.section_display_order = aData.section_display_order;
-		PLEX.last_updated = aData.last_updated;
 		PLEX.data_loaded = true;
 	}, // end func: load_data
 
 
 	display_sections_list: function() {
 		var section_list_html = '';
-		$.each(PLEX.section_display_order, function(i,key){
-			var section = PLEX.sections[key];
-			section_list_html += '<li data-section="'+section.key+'" class="'+section.type+'"><em>'+number_format(section.num_items)+'</em><span>'+section.title+'</span></li>';
+		$.each(PLEX.sections, function(i,section){
+			section_list_html += '<li data-section="'+i+'" class="'+section.type+'"><em>'+number_format(section.num_items)+'</em><span>'+section.title+'</span></li>';
 		});
 		PLEX._sections_list.html(section_list_html);
 	}, // end func: display_sections_list
@@ -43,8 +47,9 @@ var PLEX = {
 
 	display_section: function(section_id) {
 		var section_id = parseInt(section_id);
+        var key = PLEX.sections[section_id].key;
 
-		if(section_id != PLEX.current_section.key) {
+		if(key != PLEX.current_section.key) {
 			PLEX.current_sort_key = "title";
 			PLEX.current_sort_order = "asc";
 			PLEX.current_genre = "all";
@@ -57,26 +62,29 @@ var PLEX = {
 		}
 
 		PLEX.current_section = PLEX.sections[section_id];
-		window.location.hash = PLEX.current_section.key;
+		//window.location.hash = PLEX.current_section.key;
 
 		$("li", PLEX._sections_list).removeClass("current");
 		$("li[data-section="+section_id+"]").addClass("current");
 		PLEX._section_title.text(PLEX.current_section.title);
 
 		PLEX.display_items();
-		PLEX.display_genre_list(PLEX.current_section.genres);
+        PLEX.genres = PLEX.build_genres_list(PLEX.items);
+		PLEX.display_genre_list(PLEX.genres);
 
-		var items_to_show_directors_for = PLEX.filter_items_by_genre(PLEX.current_section.items, PLEX.current_genre),
+		var items_to_show_directors_for = PLEX.filter_items_by_genre(PLEX.items, PLEX.current_genre),
 				directors = [],
 				item_count = 0;
 
 		$.each(items_to_show_directors_for, function(key, item) {
-			if (!item.director)
+			if (!item.Director)
 				return;
 
 			item_count++;
-			for (var i = item.director.length - 1; i >= 0; i--) {
-				var name = item.director[i];
+            // If only one director, end up with an object rather than an array. Handle this
+            if(!$.isArray(item.Director)) item.Director = [item.Director];
+			for (var i = item.Director.length - 1; i >= 0; i--) {
+				var name = item.Director[i].tag;
 				if (name) {
 					var director = directors[name];
 					if (!director) {
@@ -116,15 +124,15 @@ var PLEX = {
 
 			var num_to_show_before_hiding = 5;
 			var count = num_hidden = 0;
-			var list_html = '<li data-genre="all"><em>'+PLEX.current_section.num_items+'</em>All</li>';
+			var list_html = '<li data-genre="all"><em>'+ PLEX.items.length +'</em>All</li>';
 
-			$.each(genres, function(i, genre){
+			$.each(genres, function(i, e){
 				count++;
 				if(count <= num_to_show_before_hiding) {
-					list_html += '<li data-genre="'+genre.genre+'" class="genre_shown"><em>'+genre.count+'</em>'+genre.genre+'</li>';
+					list_html += '<li data-genre="'+ e.genre+'" class="genre_shown"><em>'+ e.count+'</em>'+e.genre+'</li>';
 				} else {
 					num_hidden++;
-					list_html += '<li data-genre="'+genre.genre+'" class="genre_hidden"><em>'+genre.count+'</em>'+genre.genre+'</li>';
+					list_html += '<li data-genre="'+e.genre+'" class="genre_hidden"><em>'+ e.count+'</em>'+e.genre+'</li>';
 				}
 			});
 
@@ -202,17 +210,17 @@ var PLEX = {
 			return;
 		};
 		
-		var list_html = '<li data-seen="all"><em>'+PLEX.current_section.num_items+'</em>All</li>';
+		var list_html = '<li data-seen="all"><em>'+PLEX.items.length +'</em>All</li>';
 		
 		seen_count = 0;
-		$.each(PLEX.filter_items_by_seen(PLEX.current_section.items, "true"), function (k, v) {
+		$.each(PLEX.filter_items_by_seen(PLEX.items, "true"), function (k, v) {
 			seen_count++;
 		});
 		
 		list_html += '<li data-seen="true"><em>'+seen_count+'</em>Seen</li>';
 		
 		unseen_count = 0;
-		$.each(PLEX.filter_items_by_seen(PLEX.current_section.items, "false"), function (k, v) {
+		$.each(PLEX.filter_items_by_seen(PLEX.items, "false"), function (k, v) {
 			unseen_count++;
 		});
 		
@@ -227,9 +235,9 @@ var PLEX = {
 	},
 
 
-	display_items: function(items) {
+	display_items: function() {
 
-		var items = PLEX.current_section.items
+		var items = PLEX.items
 		
 		if (PLEX.current_seen != "all") {
 			items = PLEX.filter_items_by_seen(items, PLEX.current_seen);
@@ -250,13 +258,20 @@ var PLEX = {
 		PLEX._item_list.html("");
 		var num_items = 0;
 		var html_string = '';
-		$.each(PLEX.current_section.sorts[PLEX.current_sort_key+"_"+PLEX.current_sort_order], function(i, key){
+		/*$.each(PLEX.current_section.sorts[PLEX.current_sort_key+"_"+PLEX.current_sort_order], function(i, key){
 			if(typeof items[key] == "undefined") return;
 			var item = items[key];
 			var thumb = (item.thumb==false)?"assets/images/default.png":item.thumb;
 			html_string += '<li data-item="'+item.key+'" class="item"><img src="'+thumb+'" width="150" /><h4>'+item.title+'</h4></li>';
 			num_items++;
-		});
+		}); */
+        $.each(items, function(i,v) {
+            var thumb = "images/default.png";
+            var data_src = v.thumbTranscodeUrl ? ' data-src="' + v.thumbTranscodeUrl + '&width=150&height=250" ': "";
+            html_string += '<li data-item="'+v.key+'" class="item"><img src="'+ thumb + '"' + data_src + ' width="150" /><h4>'+v.title+'</h4></li>';
+            num_items++;
+        });
+
 		PLEX._item_list.html(html_string);
 
 		if(num_items==0) {
@@ -290,8 +305,14 @@ var PLEX = {
 		if(genre == "all") return all_items;
 		var items_to_show = {};
 		$.each(all_items, function(key, item){
-			if($.inArray(genre, item.genre) === -1) return;
-			items_to_show[key] = item;
+            if(!item.hasOwnProperty("Genre")) return;
+            if(!$.isArray(item.Genre)) item.Genre = [item.Genre];
+            $.each(item.Genre, function(i,g){
+                if(g.tag == genre) {
+                    items_to_show[key] = item;
+                    return false;
+                }
+            });
 		});
 		return items_to_show;
 	}, // end func: filter_items_by_genre
@@ -301,8 +322,14 @@ var PLEX = {
 		if(director == "all") return all_items;
 		var items_to_show = {};
 		$.each(all_items, function(key, item){
-			if($.inArray(director, item.director) === -1) return;
-			items_to_show[key] = item;
+            if(!item.hasOwnProperty("Director")) return;
+            if(!$.isArray(item.Director)) item.Director = [item.Director];
+            $.each(item.Director, function(i,d){
+                if(d.tag == director) {
+                    items_to_show[key] = item;
+                    return false;
+                }
+            });
 		});
 		return items_to_show;
 	}, // end func: filter_items_by_director
@@ -341,7 +368,7 @@ var PLEX = {
 		$("li em", PLEX._sorts_list).remove();
 		$("li[data-sort="+PLEX.current_sort_key+"]", PLEX._sorts_list).addClass("current").append("<em>"+PLEX.current_sort_order+"</em>");
 
-		PLEX.display_section(PLEX.current_section.key);
+		PLEX.display_section($("li.current", PLEX._sections_list).attr('data-section'));
 
 	}, // end func: change_sort
 
@@ -350,26 +377,26 @@ var PLEX = {
 		if(typeof genre == "undefined" || genre == PLEX.current_genre) return;
 		PLEX.current_director = 'all';
 		PLEX.current_genre = genre;
-		PLEX.display_section(PLEX.current_section.key);
+		PLEX.display_section($("li.current", PLEX._sections_list).attr('data-section'));
 	}, // end func: change_genre
 
 
 	change_director: function(director) {
 		if(typeof director == "undefined" || director == PLEX.current_director) return;
 		PLEX.current_director = director;
-		PLEX.display_section(PLEX.current_section.key);
+		PLEX.display_section($("li.current", PLEX._sections_list).attr('data-section'));
 	}, // end func: change_director
 	
 	change_seen: function(seen) {
 		if(typeof seen == "undefined" || seen == PLEX.current_seen) return;
 		PLEX.current_seen = seen;
-		PLEX.display_section(PLEX.current_section.key);
+		PLEX.display_section($("li.current", PLEX._sections_list).attr('data-section'));
 	},
 
 
 	display_item: function(item_id) {
 		var item_id = parseInt(item_id);
-		PLEX.current_item = PLEX.current_section.items[item_id];
+		PLEX.current_item = PLEX.items[item_id];
 		window.location.hash = PLEX.current_section.key+"/"+PLEX.current_item.key;
 		var popup_html = PLEX.generate_item_content();
 		PLEX._popup_overlay.fadeIn().height($(document).height());
@@ -518,7 +545,7 @@ var PLEX = {
 
 
 	run: function() {
-
+        /*
 		if(!PLEX.data_loaded) {
 			$.get("plex-data/data.js", function(data){
 				eval(data); // unpack
@@ -526,10 +553,9 @@ var PLEX = {
 				return PLEX.run();
 			});
 			return;
-		}
+		}*/
 
-		PLEX._total_items = $("#total_items");
-		PLEX._last_updated = $("#last_updated");
+        PLEX._servers_list = $("#plex_servers_list");
 		PLEX._sections_list = $("#plex_section_list");
 		PLEX._sorts_list = $("#plex_sort_list");
 		PLEX._genre_list_section = $("#plex_genre_list_section").hide();
@@ -546,52 +572,61 @@ var PLEX = {
 		PLEX._popup_overlay = $("#popup-overlay");
 		PLEX._popup_container = $("#popup-container");
 
-		PLEX._total_items.text(number_format(PLEX.total_items));
-		PLEX._last_updated.text(PLEX.last_updated);
-		PLEX.display_sections_list();
+        PLEX.init_event_handlers();
+        PLEX.load_servers();
+        return;
+    },
+    init_event_handlers: function() {
 
-		$("li", PLEX._sections_list).click(function(){
-			PLEX.display_section($(this).attr("data-section"));
+        //PLEX.display_sections_list();
+
+        $(PLEX._servers_list).on("click", "li", function(){
+            PLEX.display_server($(this).attr("data-server"));
+        });
+
+		$(PLEX._sections_list).on("click","li", function(){
+			//PLEX.display_section($(this).attr("data-section"));
+            PLEX.load_items($(this).attr("data-section"));
 		});
 
-		$("li", PLEX._sorts_list).click(function(){
+		$(PLEX._sorts_list).on("click", "li" ,function(){
 			PLEX.change_sort($(this).attr('data-sort'));
 		});
 
-		$("li", PLEX._genre_list).live("click", function(){
+		$(PLEX._genre_list).on("click", "li", function(){
 			PLEX.change_genre($(this).attr('data-genre'));
 		});
 
-		$("li", PLEX._director_list).live("click", function(){
+		$(PLEX._director_list).on("click", "li", function(){
 			PLEX.change_director($(this).attr('data-director'));
 		});
 		
-		$("li", PLEX._seen_list).live("click", function(){
+		$(PLEX._seen_list).on("click", "li", function(){
 			PLEX.change_seen($(this).attr('data-seen'));
 		});
 
-		$("#genre_show_all").live("click", function(){
+		$(document).on("click", "#genre_show_all", function(){
 			PLEX.show_all_genres = true;
 			$(".genre_hidden").show();
 			$("#genre_show_all").hide();
 			$("#genre_hide_all").show();
 		});
 
-		$("#genre_hide_all").live("click", function(){
+		$(document).on("click", "#genre_hide_all", function(){
 			PLEX.show_all_genres = false;
 			$(".genre_hidden").hide();
 			$("#genre_hide_all").hide();
 			$("#genre_show_all").show();
 		});
 
-		$("#director_show_all").live("click", function(){
+		$(document).on("click", "#director_show_all", function(){
 			PLEX.show_all_directors = true;
 			$(".director_hidden").show();
 			$("#director_show_all").hide();
 			$("#director_hide_all").show();
 		});
 
-		$("#director_hide_all").live("click", function(){
+		$(document).on("click", "#director_hide_all", function(){
 			PLEX.show_all_directors = false;
 			$(".director_hidden").hide();
 			$("#director_hide_all").hide();
@@ -599,20 +634,22 @@ var PLEX = {
 		});
 
 		PLEX._section_filter.keyup(function(){
-			PLEX.display_section(PLEX.current_section.key);
+			PLEX.display_section($("li.current", PLEX._sections_list).attr('data-section'));
 		});
 
-		$("li", PLEX._item_list).live("click", function(){
+		$(PLEX._item_list).on("click", "li", function(){
 			PLEX.display_item($(this).attr("data-item"));
 		});
 
-		$("#popup-footer span").live("click", function(){
+		$(document).on("click", "#popup-footer span", function(){
 			PLEX.display_item($(this).attr("data-item"));
 		});
 
+        /*
 		PLEX._popup_overlay.click(function(){
 			PLEX.hide_item();
 		});
+		*/
 
 		$(document).keyup(function(event) {
 			if(event.shiftKey || event.metaKey || event.altKey || event.ctrlKey) return;
@@ -637,28 +674,210 @@ var PLEX = {
 			}
 		});
 
-		$(".popup-close").live("click", function(){
+		$(document).on("click",".popup-close", function(){
 			PLEX.hide_item();
 		});
 
-		$("#toggle_sidebar").click(function(){
+		$("#toggle_sidebar").on("click", function(){
 			$("#sidebar").toggle();
 			return false;
 		});
-
+        /*
 		var hash = window.location.hash;
 		if(hash!="") {
-			var regex = new RegExp("#([0-9]+)/?([0-9]+)?/?");
+			var regex = new RegExp("#([0-9a-f]+)/?([0-9]+)?/?([0-9]+)?/?");
 			var m = regex.exec(hash);
 			var m1 = parseInt(m[1]);
 			var m2 = parseInt(m[2]);
-			if(m1>0) PLEX.display_section(m1);
-			if(m2>0) PLEX.display_item(m2);
+            var m3 = parseInt(m[3]);
+            if(m1) PLEX.display_server(m1);
+			if(m1>0) PLEX.display_section(m2);
+			if(m2>0) PLEX.display_item(m3);
 		} else {
-			$("li:first", PLEX._sections_list).click();
-		}
+			$("li:first", PLEX._servers_list).click();
+		} */
+
+        $(document).on("inview","img[data-src]", function(event, isInView, visiblePartX, visiblePartY) {
+            if(!isInView) return;
+            var img = $(this);
+            // Show a smooth animation
+            img.fadeTo(0, 0);
+            img.load(function() { img.fadeTo(300, 1); });
+            // Change src
+            img.attr('src', img.attr('data-src'));
+            // Remove it from live event selector
+            img.removeAttr('data-src');
+        });
 
 	}, // end func: run
 
+    display_login: function() {
+        var login_html = PLEX.generate_login_content();
+        PLEX._popup_overlay.fadeIn().height($(window).height());
+        PLEX._popup_container
+            .html(login_html)
+            .css({
+                top: $(window).scrollTop() + ($(window).height()-PLEX._popup_container.height())/2,
+                left: ($(window).width()-PLEX._popup_container.width())/2
+            })
+            .fadeIn();
+
+        $("#signInButton").click(function(ev) {
+            var data = {};
+            data.username = $("#popup-content input[name='username']").val();
+            data.password = $("#popup-content input[name='password']").val();
+            console.log("Logging in " + data.username);
+            $.ajax({
+                type: "POST",
+                url: "/login",
+                data: data,
+                dataType: "json",
+                success: function(data, textStatus, jqXHR) {
+                    console.log("Signed in");
+                    // Hide the login form
+                    PLEX._popup_overlay.fadeOut();
+                    PLEX._popup_container.fadeOut();
+                    PLEX.load_servers();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log("Sign in failed");
+                    $('#signInMessage').html("Invalid username/password")
+                }
+            })
+        });
+
+        return;
+    },
+
+    load_servers: function() {
+        $.ajax({
+            url: "/servers/",
+            dataType: "json",
+            success: function(data, textStatus, jqXHR) {
+                console.log("Loaded servers");
+                PLEX.servers = data.plexServers;
+                PLEX.display_servers_list();
+                $("li:first", PLEX._servers_list).click();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Load servers failed");
+                if(jqXHR.status == 401) {
+                    PLEX.display_login();
+                } else {
+                    console.log(errorThrown);
+                }
+            }
+        });
+
+    },
+
+    display_servers_list: function() {
+        var server_list_html = '';
+        $.each(PLEX.servers, function(i,v){
+            server_list_html += '<li data-server="'+ i +'"><span>'+v.name+'</span></li>';
+        });
+        PLEX._servers_list.html(server_list_html);
+    },
+
+    display_server: function (server_id) {
+        if(PLEX.servers[server_id].machineIdentifier == PLEX.current_server.machineIdentifer) return;
+        PLEX.current_server = PLEX.servers[server_id];
+        window.location.hash = server_id;
+
+        $("li", PLEX._servers_list).removeClass("current");
+        $("li[data-server="+server_id+"]").addClass("current");
+        PLEX.load_sections();
+    },
+    load_sections: function() {
+        $.ajax({
+            url: "/servers/" + PLEX.current_server.machineIdentifier + "/sections/",
+            dataType: "json",
+            success: function(data, textStatus, jqXHR) {
+                console.log("Loaded sections");
+                PLEX.sections = data.sections;
+                PLEX.display_sections_list();
+                $("li:first", PLEX._sections_list).click();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Load sections failed");
+                if(jqXHR.status == 401) {
+                    PLEX.display_login();
+                } else {
+                    console.log(errorThrown);
+                }
+            }
+        });
+
+    },
+    load_items: function(section_id) {
+        $.ajax({
+            url: "/servers/" + PLEX.current_server.machineIdentifier + "/sections/" + PLEX.sections[section_id].key + "/filters/all/",
+            dataType: "json",
+            success: function(data, textStatus, jqXHR) {
+                console.log("Loaded section");
+                PLEX.items = data.videos ? data.videos : data.shows;
+                PLEX.display_section(section_id);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Load section failed");
+                if(jqXHR.status == 401) {
+                    PLEX.display_login();
+                } else {
+                    console.log(errorThrown);
+                }
+            }
+        });
+
+    },
+    build_genres_list: function(items) {
+        var genres = {};
+        var result = [];
+        $.each(items, function(key,item) {
+            //No Genre at all
+            if(!item.hasOwnProperty("Genre")) return;
+            // Only one genre, in which case, it's a Genre object directly
+            if(!$.isArray(item.Genre)) item.Genre = [item.Genre];
+            $.each(item.Genre, function(i,genre) {
+                if(!genre.hasOwnProperty("tag")) {
+                    return;
+                }
+                if(!genres.hasOwnProperty(genre.tag)) {
+                    genres[genre.tag] = {genre: genre.tag, count: 1};
+                } else {
+                    genres[genre.tag].count = genres[genre.tag].count + 1;
+                }
+            });
+        });
+        $.each(genres, function(key, item) {
+             result.push(item);
+        });
+        result.sort(function(a,b) {
+            // By decreasing count if equal by alphabetical order
+            if(a.count > b.count) return -1;
+            if(a.count < b.count) return 1;
+            if(a.genre > b.genre) return -1;
+            if(a.genre < b.genre) return 1;
+            return 0;
+        });
+        return result;
+    },
+    generate_login_content: function() {
+        var popup_header = '<div id="popup-header"><p class="right"><span class="popup-close">Close</span></p><p>myPlex sign in</p></div>';
+
+
+        var popup_footer = '<div id="popup-footer">';
+        popup_footer += '<div class="clear"></div></div>';
+
+
+        var popup_content = '<div id="popup-content">';
+        popup_content += '<div><h3 id="signInMessage"></h3></div>'
+        popup_content += '<div><h3>Username:</h3></div><div><input type="text" name="username" size="64" /></div>';
+        popup_content += '<div><h3>Password:</h3></div><div><input type="password" name="password" size="64" /></div>';
+        popup_content += '<div><input type="button" value="Sign in" id="signInButton"/></div>'
+        popup_content += '</div>';
+
+        return popup_header + '<div id="popup-outer"><div id="popup-inner">' + popup_content + '<div class="clear"></div></div>' + popup_footer + '</div>';
+
+    }
 
 }; // end class: PLEX
