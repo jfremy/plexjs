@@ -929,24 +929,41 @@ var PLEX = {
     playMedia: function(mediaId) {
         $("#popup-content").hide();
         $("#popup-content-player").show();
-        var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + mediaId +"/hls/start.m3u8?quality=7";
-        jwplayer('popup-player').setup({
-            modes: [ {
-                type: 'flash',
-                src:  '/public/swf/player.swf',
-                config: {
-                    file: url,
-                    provider:'/public/swf/adaptiveProvider.swf'
-                }
+        var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + mediaId +"/hls/start.json?quality=7";
+
+        $.ajax({
+            url: url,
+            dataType: "json",
+            success: function(data, textStatus, jqXHR) {
+                console.log("Got playlist");
+                jwplayer('popup-player').setup({
+                    modes: [ {
+                        type: 'flash',
+                        src:  '/public/swf/player.swf',
+                        config: {
+                            file: data.transcodeURL,
+                            provider:'/public/swf/adaptiveProvider.swf'
+                        }
+                    },
+                        {
+                            type:'html5',
+                            config: {
+                                file: data.transcodeURL
+                            }
+                        }
+                    ],
+                    autostart: true
+                });
             },
-                {
-                    type:'html5',
-                    config: {
-                        file: url
-                    }
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Load playlist failed");
+                if(jqXHR.status == 401) {
+                    PLEX.display_login();
+                } else {
+                    console.log(errorThrown);
                 }
-            ],
-            autostart: true
+            }
+
         });
     },
     joinOnObjectArray: function(array, separator, key) {

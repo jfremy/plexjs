@@ -44,6 +44,24 @@ module.exports = (function() {
         result += "&X-Plex-Access-Key=" + encodeURIComponent(config.transcoding.publicKey);
         result += "&X-Plex-Access-Time=" + encodeURIComponent(now);
         result += "&X-Plex-Access-Code=" + encodeURIComponent(hmac);
+
+        result += "&X-Plex-Client-Capabilities=";
+
+        var first = true;
+        var capabilities = "";
+        for(var k in config.transcoding.capabilities) {
+            var cap = config.transcoding.capabilities[k];
+            if(cap.length > 0) {
+                if(first) {
+                    first = false;
+                } else {
+                    capabilities += ";";
+                }
+                capabilities += k + "="
+                capabilities += cap.join(',');
+            }
+        }
+        result += encodeURIComponent(capabilities);
         return result;
     }
 

@@ -72,12 +72,8 @@ module.exports = function(app) {
         var offset = req.param('offset', 0);
         var is3g = Boolean(req.param('is3g', false));
 
-        //var capabilities = "protocols=http-live-streaming,http-mp4-streaming,http-streaming-video,http-mp4-video,http-streaming-video-720p,http-streaming-video-1080p,http-mp4-video-720p,http-mp4-video-1080p;videoDecoders=h264{profile:high&resolution:1080&level:51},h264{profile:high&resolution:720&level:51};audioDecoders=mp3,aac";
-        var capabilities = "protocols=http-live-streaming,http-mp4-streaming,http-streaming-video,http-mp4-video,http-streaming-video-720p,http-streaming-video-1080p,http-mp4-video-720p,http-mp4-video-1080p;audioDecoders=mp3,aac";
-
         var transcodeUrl = plex_utils.buildVideoTranscodeUrlHLS(req.session.episode.Media.Part.key, offset, quality, is3g);
         transcodeUrl += "&X-Plex-Token=" + encodeURIComponent(authToken);
-        transcodeUrl += "&X-Plex-Client-Capabilities=" + encodeURIComponent(capabilities);
 
         var options = {
             host: req.session.server.host,

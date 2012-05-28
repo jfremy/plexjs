@@ -1,4 +1,5 @@
 var express = require('express');
+var config = require('./config');
 
 var app = express.createServer();
 app.use(express.logger());
@@ -27,4 +28,4 @@ require('./controllers/plexShows')(app);
 require('./controllers/plexSeasons')(app);
 require('./controllers/plexEpisodes')(app);
 
-app.listen(8000,'localhost');
+app.listen(config.server.port,config.server.address);
