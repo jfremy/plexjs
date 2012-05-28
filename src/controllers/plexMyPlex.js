@@ -1,4 +1,5 @@
 var negotiate = require('express-negotiate');
+var config = require('../config');
 var http_utils = require('../utils/http_utils');
 
 module.exports = function(app) {
@@ -31,18 +32,12 @@ module.exports = function(app) {
             host: 'my.plexapp.com',
             path: '/users/sign_in.json',
             method: 'POST',
-            auth: user + ':' + password,
-            headers: {
-                'Content-Length': 0,
-                'X-Plex-Platform': 'NodeJS',
-                'X-Plex-Platform-Version': process.versions.node,
-                'X-Plex-Provides': 'player',
-                'X-Plex-Product': 'Plex Web Client',
-                'X-Plex-Version': '0.1',
-                'X-Plex-Device': '',
-                'X-Plex-Client-Identifier': '123456789'
-            }
+            auth: user + ':' + password
         };
+        signinOptions.headers = config.myPlexHeaders;
+        signinOptions.headers['Content-Length'] = 0;
+
+
         http_utils.request(true, signinOptions, 'json', function(authentResult) {
             req.session.plexToken = authentResult.user['authentication_token'];
             req.session.plexUser = authentResult.user['username'];

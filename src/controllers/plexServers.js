@@ -1,3 +1,4 @@
+var config = require('../config');
 var http_utils = require('../utils/http_utils');
 var data_utils = require('../utils/data_utils');
 
@@ -68,16 +69,8 @@ module.exports = function(app){
     }
 
     function retrieveServersList(authToken, success, failure) {
-        var headers = {
-            'Content-Length': 0,
-            'X-Plex-Platform': 'NodeJS',
-            'X-Plex-Platform-Version': process.versions.node,
-            'X-Plex-Provides': 'player',
-            'X-Plex-Product': 'Plex Web Client',
-            'X-Plex-Version': '0.1',
-            'X-Plex-Device': '',
-            'X-Plex-Client-Identifier': '123456789'
-        };
+        var headers = config.myPlexHeaders;
+        headers['Content-Length'] = 0;
         var options = {
             host: 'my.plexapp.com',
             headers: headers,

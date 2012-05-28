@@ -1,4 +1,5 @@
 var crypto = require('crypto');
+var config = require('../config');
 
 module.exports = (function() {
     function buildPhotoBaseTranscodeUrl(authToken, server, videos, key) {
@@ -24,16 +25,12 @@ module.exports = (function() {
     }
 
     function buildVideoTranscodeUrlFromBase(base, partUrl, offset, quality, is3g) {
-        var publicKey = 'KQMIY6GATPC63AIMC4R2';
-        var privateKey = new Buffer('k3U6GLkZOoNIoSgjDshPErvqMIFdE0xMTx8kgsrhnC0=', 'base64');
-
-
         var now = Math.round(new Date().getTime()/1000);
         var localVideoUrl = "http://127.0.0.1:32400" + partUrl;
 
         var transcodeUrl = base;
         transcodeUrl += "url=" + encodeURIComponent(localVideoUrl);
-        //transcodeUrl += "identifier=com.plexapp.plugins.library";
+        transcodeUrl += "&identifier=com.plexapp.plugins.library";
         //transcodeUrl += "&ratingKey=" + encodeURIComponent(ratingKey);
         transcodeUrl += "&offset=" + encodeURIComponent(offset);
         transcodeUrl += "&quality=" + encodeURIComponent(quality);
@@ -41,16 +38,12 @@ module.exports = (function() {
         //transcodeUrl += "&httpCookies=&userAgent=";
         var msg = transcodeUrl + "@" + now;
 
-        var hmac = crypto.createHmac('sha256', privateKey).update(msg).digest('base64');
+        var hmac = crypto.createHmac('sha256', config.transcoding.privateKey).update(msg).digest('base64');
 
-        var result = {
-            url: transcodeUrl,
-            headers: {
-                "X-Plex-Access-Key": publicKey,
-                "X-Plex-Access-Time": now,
-                "X-Plex-Access-Code": hmac
-            }
-        };
+        var result = transcodeUrl;
+        result += "&X-Plex-Access-Key=" + encodeURIComponent(config.transcoding.publicKey);
+        result += "&X-Plex-Access-Time=" + encodeURIComponent(now);
+        result += "&X-Plex-Access-Code=" + encodeURIComponent(hmac);
         return result;
     }
 

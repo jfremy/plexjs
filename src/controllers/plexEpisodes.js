@@ -75,27 +75,37 @@ module.exports = function(app) {
         //var capabilities = "protocols=http-live-streaming,http-mp4-streaming,http-streaming-video,http-mp4-video,http-streaming-video-720p,http-streaming-video-1080p,http-mp4-video-720p,http-mp4-video-1080p;videoDecoders=h264{profile:high&resolution:1080&level:51},h264{profile:high&resolution:720&level:51};audioDecoders=mp3,aac";
         var capabilities = "protocols=http-live-streaming,http-mp4-streaming,http-streaming-video,http-mp4-video,http-streaming-video-720p,http-streaming-video-1080p,http-mp4-video-720p,http-mp4-video-1080p;audioDecoders=mp3,aac";
 
-        var transcodeInfo = plex_utils.buildVideoTranscodeUrlHLS(req.session.episode.Media.Part.key, offset, quality, is3g);
-        transcodeInfo.url += "&X-Plex-Token=" + encodeURIComponent(authToken);
-        transcodeInfo.url += "&X-Plex-Client-Capabilities=" + encodeURIComponent(capabilities);
+        var transcodeUrl = plex_utils.buildVideoTranscodeUrlHLS(req.session.episode.Media.Part.key, offset, quality, is3g);
+        transcodeUrl += "&X-Plex-Token=" + encodeURIComponent(authToken);
+        transcodeUrl += "&X-Plex-Client-Capabilities=" + encodeURIComponent(capabilities);
 
         var options = {
             host: req.session.server.host,
             port: req.session.server.port,
-            headers: transcodeInfo.headers,
-            path: transcodeInfo.url
+            path: transcodeUrl
         };
-        http_utils.request(false, options, 'none', function(data) {
-            var playlist = data.replace("session/", "http://" + req.session.server.host + ":" + req.session.server.port + "/video/:/transcode/segmented/session/");
-            res.contentType('stream.m3u8');
-            res.setHeader('Content-Disposition', 'inline; filename="stream.m3u8"');
-            res.end(playlist);
-            return;
-        }, function(err) {
-            console.log(err.msg);
-            res.statusCode = err.statusCode;
-            res.end(err.msg);
-            return;
+
+        req.negotiate({
+            'application/json': function() {
+                var url = "http://" + req.session.server.host + ":" + req.session.server.port + transcodeUrl;
+                res.json({ statusCode: 200, transcodeURL: url });
+                return;
+            },
+            'application/x-mpegURL,html,default': function() {
+                http_utils.request(false, options, 'none', function(data) {
+                    var playlist = data.replace("session/", "http://" + req.session.server.host + ":" + req.session.server.port + "/video/:/transcode/segmented/session/");
+                    res.contentType('stream.m3u8');
+                    res.setHeader('Content-Disposition', 'inline; filename="stream.m3u8"');
+                    res.setHeader('Content-Type', 'application/x-mpegURL');
+                    res.end(playlist);
+                    return;
+                }, function(err) {
+                    console.log(err.msg);
+                    res.statusCode = err.statusCode;
+                    res.end(err.msg);
+                    return;
+                });
+            }
         });
     });
 };
