@@ -28,7 +28,7 @@ var PLEX = {
 	display_sections_list: function() {
 		var section_list_html = '';
 		$.each(PLEX.sections, function(i,section){
-			section_list_html += '<li data-section="'+i+'" class="'+section.type+'"><em>'+number_format(section.num_items)+'</em><span>'+section.title+'</span></li>';
+			section_list_html += '<li data-section="'+i+'" class="'+section.type+'"><em>'+number_format(section.items.length)+'</em><span>'+section.title+'</span></li>';
 		});
 		PLEX._sections_list.html(section_list_html);
 	}, // end func: display_sections_list
@@ -37,6 +37,7 @@ var PLEX = {
 	display_section: function(section_id) {
 		var section_id = parseInt(section_id);
         var key = PLEX.sections[section_id].key;
+        PLEX.items = PLEX.sections[section_id].items;
 
 		if(key != PLEX.current_section.key) {
 			PLEX.current_sort_key = "title";
@@ -625,7 +626,7 @@ var PLEX = {
         });
 
 		$(PLEX._sections_list).on("click","li", function(){
-            PLEX.load_items($(this).attr("data-section"));
+            PLEX.display_section($(this).attr("data-section"));
 		});
 
 		$(PLEX._sorts_list).on("click", "li" ,function(){
@@ -833,9 +834,36 @@ var PLEX = {
             dataType: "json",
             success: function(data, textStatus, jqXHR) {
                 console.log("Loaded sections");
-                PLEX.sections = data.sections;
-                PLEX.display_sections_list();
-                $("li:first", PLEX._sections_list).click();
+                PLEX.sections = $.isArray(data.sections) ? data.sections : [ data.sections ];
+
+                var numSections = PLEX.sections.length;
+                var processedSections = 0;
+
+                $.each(PLEX.sections, function(i,section) {
+                    $.ajax({
+                        url: "/servers/" + PLEX.current_server.machineIdentifier + "/sections/" + section.key + "/filters/all/",
+                        dataType: "json",
+                        success: function(data, textStatus, jqXHR) {
+                            console.log("Loaded section " + i);
+                            section.items = data.videos ? data.videos : data.shows;
+                            //PLEX.display_section(i);
+
+                            processedSections++;
+                            if(processedSections == numSections) {
+                                PLEX.display_sections_list();
+                                $("li:first", PLEX._sections_list).click();
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.log("Load section failed " + i);
+                            if(jqXHR.status == 401) {
+                                PLEX.display_login();
+                            } else {
+                                console.log(errorThrown);
+                            }
+                        }
+                    });
+                });
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Load sections failed");
