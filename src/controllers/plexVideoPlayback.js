@@ -23,7 +23,7 @@ module.exports = function(app){
 
     });
 
-    app.put('/playback/:transcodeId/state/stop', function(req, res, next) {
+    app.delete('/playback/:transcodeId', function(req, res, next) {
         var options = {
             host: req.session.server.host,
             port: req.session.server.port,

@@ -1039,9 +1039,9 @@ var PLEX = {
     transcodeStop: function() {
         if(PLEX.transcodeId) {
             $.ajax({
-                url: "/playback/" + PLEX.transcodeId + "/state/stop",
+                url: "/playback/" + PLEX.transcodeId,
                 dataType: "json",
-                type: "PUT"
+                type: "DELETE"
             });
             PLEX.transcodeId = false;
         }
