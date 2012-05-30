@@ -44,5 +44,6 @@ require('./controllers/plexMovies')(app);
 require('./controllers/plexShows')(app);
 require('./controllers/plexSeasons')(app);
 require('./controllers/plexEpisodes')(app);
+require('./controllers/plexVideoPlayback')(app);
 
 app.listen(config.server.port,config.server.address);

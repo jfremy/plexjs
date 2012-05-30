@@ -24,6 +24,8 @@ var PLEX = {
 	filter_timeout: false,
 	filter_delay: 350,
 	popup_visible: false,
+    transcodeId: "",
+    transcodePingTimer: false,
 
 	display_sections_list: function() {
 		var section_list_html = '';
@@ -688,10 +690,12 @@ var PLEX = {
 
 		PLEX._popup_overlay.click(function(){
 			PLEX.hide_item();
+            PLEX.transcodeStop();
 		});
 
 		$(document).on("click",".popup-close", function(){
 			PLEX.hide_item();
+            PLEX.transcodeStop();
 		});
 
 		$("#toggle_sidebar").on("click", function(){
@@ -957,7 +961,10 @@ var PLEX = {
     playMedia: function(mediaId) {
         $("#popup-content").hide();
         $("#popup-content-player").show();
-        var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + mediaId +"/hls/start.json?quality=7";
+        // We use movies even for tvshows as on plex side it does not make a difference (everything is in library/metadata/
+        // It could pose pb at the frond end side but actually works.
+        var quality = $("#video_quality").val();
+        var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + mediaId +"/hls/start.json?quality=" + quality;
 
         $.ajax({
             url: url,
@@ -965,6 +972,7 @@ var PLEX = {
             success: function(data, textStatus, jqXHR) {
                 console.log("Got playlist");
                 jwplayer('popup-player').setup({
+                    wmode: "gpu",
                     modes: [ {
                         type: 'flash',
                         src:  '/public/swf/player.swf',
@@ -982,6 +990,13 @@ var PLEX = {
                     ],
                     autostart: true
                 });
+
+                PLEX.transcodeId = data.transcodeId;
+
+                //jwplayer('popup-player').onPlay();
+                //jwplayer('popup-player').onPause();
+                //jwplayer('popup-player').onIdle();
+
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Load playlist failed");
@@ -1020,6 +1035,25 @@ var PLEX = {
 
         return popup_header + '<div id="popup-outer"><div id="popup-inner">' + popup_content + '<div class="clear"></div></div>' + popup_footer + '</div>';
 
+    },
+    transcodeStop: function() {
+        if(PLEX.transcodeId) {
+            $.ajax({
+                url: "/playback/" + PLEX.transcodeId + "/state/stop",
+                dataType: "json",
+                type: "PUT"
+            });
+            PLEX.transcodeId = false;
+        }
+    },
+    transcodePing: function() {
+        if(PLEX.transcodeId) {
+            $.ajax({
+                url: "/playback/" + PLEX.transcodeId + "/state/ping",
+                dataType: "text",
+                type: "PUT"
+            });
+        }
     }
 
 }; // end class: PLEX

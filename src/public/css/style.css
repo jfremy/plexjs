@@ -44,7 +44,7 @@ body {
 	height: 95px;
 	overflow: hidden;
 }
-#header p span {
+#header p span#sign_out {
 	display: block;
 	font-size: 16px;
 	text-transform: uppercase;
@@ -52,7 +52,7 @@ body {
 	padding: 4px 6px 0 0;
     cursor: pointer;
 }
-#header p span:hover {
+#header p span#sign_out:hover {
     text-decoration: underline;
 }
 #header p strong {
@@ -60,6 +60,14 @@ body {
 	margin: -12px -6px 0 0;
 	font-size: 96px;
 	color: #3E4146;
+}
+
+#header p #quality {
+    color: #60666B;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: block;
+    margin: 40px 6px 0 0;
 }
 
 

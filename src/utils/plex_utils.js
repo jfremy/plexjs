@@ -67,7 +67,7 @@ module.exports = (function() {
                     res.json({
                             statusCode: 200,
                             transcodeURL: "http://" + req.session.server.host + ":" + req.session.server.port + "/video/:/transcode/segmented/" + url[0],
-                            sessionId: url[1]
+                            transcodeId: url[1]
                         }
                     );
                     return;
@@ -78,7 +78,6 @@ module.exports = (function() {
                     res.setHeader('Content-Disposition', 'inline; filename="stream.m3u8"');
                     res.end(playlist);
                     return;
-
                 }
             });
         }, function(err) {
