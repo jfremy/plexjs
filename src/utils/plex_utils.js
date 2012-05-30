@@ -17,15 +17,19 @@
  */
 var crypto = require('crypto');
 var config = require('../config');
+var http_utils = require('./http_utils');
+var negotiate = require('express-negotiate');
 
 module.exports = (function() {
+    var captureSession = /^session\/([^\/]+)\/.*$/m;
+
     function buildPhotoBaseTranscodeUrl(authToken, server, videos, key) {
         var baseUrl = "http://" + server.host + ":" + server.port + "/photo/:/transcode?X-Plex-Token=" + authToken + "&url=";
         for(var i=0; i< videos.length; i++) {
             var video = videos[i];
             var localImageUrl;
             if(video.hasOwnProperty(key)) {
-                // Use localhost as transcoding happens locally but keep port
+                // Use localhost as transcoding happens
                 localImageUrl = "http://127.0.0.1:32400" + video[key];
                 video[key + "TranscodeUrl"] = baseUrl + encodeURIComponent(localImageUrl);
             }
@@ -33,25 +37,73 @@ module.exports = (function() {
         // Now all you have to do is add &width=xx&height=xx
     }
 
-    function buildVideoTranscodeUrlSmooth(partUrl, offset, quality, is3g) {
-        return buildVideoTranscodeUrlFromBase("/video/:/transcode/smooth?", partUrl, offset, quality, is3g);
+    function buildVideoTranscodeUrlSmooth(ratingKey, partUrl, offset, quality, is3g) {
+        return buildVideoTranscodeUrlFromBase("/video/:/transcode/smooth?", ratingKey, partUrl, offset, quality, is3g);
     }
 
-    function buildVideoTranscodeUrlHLS(partUrl, offset, quality, is3g) {
-        return buildVideoTranscodeUrlFromBase("/video/:/transcode/segmented/start.m3u8?", partUrl, offset, quality, is3g);
+    function buildVideoTranscodeUrlHLS(ratingKey, partUrl, offset, quality, is3g) {
+        return buildVideoTranscodeUrlFromBase("/video/:/transcode/segmented/start.m3u8?", ratingKey, partUrl, offset, quality, is3g);
     }
 
-    function buildVideoTranscodeUrlFromBase(base, partUrl, offset, quality, is3g) {
+    function handleVideoTranscoding(req, res, next, ratingKey, key) {
+        var authToken = getAuthToken(req);
+        var quality = req.param('quality', 5);
+        var offset = req.param('offset', 0);
+        var is3g = Boolean(req.param('is3g', false));
+
+        var transcodeUrl = buildVideoTranscodeUrlHLS(ratingKey, key, offset, quality, is3g);
+        transcodeUrl += "&X-Plex-Token=" + encodeURIComponent(authToken);
+
+        var options = {
+            host: req.session.server.host,
+            port: req.session.server.port,
+            path: transcodeUrl
+        };
+
+        http_utils.request(false, options, 'none', function(data) {
+            req.negotiate({
+                'application/json': function() {
+                    var url = data.match(captureSession);
+                    res.json({
+                            statusCode: 200,
+                            transcodeURL: "http://" + req.session.server.host + ":" + req.session.server.port + "/video/:/transcode/segmented/" + url[0],
+                            sessionId: url[1]
+                        }
+                    );
+                    return;
+                },
+                'application/x-mpegURL,html,default': function() {
+                    var playlist = data.replace("session/", "http://" + req.session.server.host + ":" + req.session.server.port + "/video/:/transcode/segmented/session/");
+                    res.contentType('stream.m3u8');
+                    res.setHeader('Content-Disposition', 'inline; filename="stream.m3u8"');
+                    res.end(playlist);
+                    return;
+
+                }
+            });
+        }, function(err) {
+            console.log(err.msg);
+            res.statusCode = err.statusCode;
+            res.end(err.msg);
+            return;
+        });
+
+    }
+
+
+    function buildVideoTranscodeUrlFromBase(base, ratingKey, partUrl, offset, quality, is3g) {
         var now = Math.round(new Date().getTime()/1000);
         var localVideoUrl = "http://127.0.0.1:32400" + partUrl;
 
         var transcodeUrl = base;
         transcodeUrl += "url=" + encodeURIComponent(localVideoUrl);
         transcodeUrl += "&identifier=com.plexapp.plugins.library";
-        //transcodeUrl += "&ratingKey=" + encodeURIComponent(ratingKey);
+        transcodeUrl += "&ratingKey=" + encodeURIComponent(ratingKey);
         transcodeUrl += "&offset=" + encodeURIComponent(offset);
         transcodeUrl += "&quality=" + encodeURIComponent(quality);
         transcodeUrl += "&3g=" + encodeURIComponent(is3g ? 1 : 0);
+        transcodeUrl += "&subtitleSize=100";
+        transcodeUrl += "&audioBoost=100";
         //transcodeUrl += "&httpCookies=&userAgent=";
         var msg = transcodeUrl + "@" + now;
 
@@ -98,8 +150,7 @@ module.exports = (function() {
 
     return {
         buildPhotoBaseTranscodeUrl: buildPhotoBaseTranscodeUrl,
-        buildVideoTranscodeUrlHLS: buildVideoTranscodeUrlHLS,
-        buildVideoTranscodeUrlSmooth: buildVideoTranscodeUrlSmooth,
+        handleVideoTranscoding: handleVideoTranscoding,
         getAuthToken: getAuthToken,
         populateRatingKeyFromKey: populateRatingKeyFromKey
     }

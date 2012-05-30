@@ -50,7 +50,7 @@ module.exports = (function() {
                     'http-mp4-video-720p',
                     'http-mp4-video-1080p'
                 ],
-                videoDecoder: [  // Used for DirectStream
+                videoDecoder: [   //Used for DirectStream
                     //'h264{profile:high&resolution:1080&level:51}',
                     //'h264{profile:high&resolution:720&level:51}',
                     //'h264{profile:baseline&resolution:480&level:30}'

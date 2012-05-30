@@ -19,7 +19,6 @@ var http = require('http');
 var https = require('https');
 var xml2js = require('xml2js');
 var negotiate = require('express-negotiate');
-var http_utils = require('../utils/http_utils');
 
 module.exports = (function() {
     function request(secure, options, type, success, failure) {

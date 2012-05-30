@@ -33,6 +33,8 @@ URLs
 /:/unscrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library     -> mark as not viewed
 /:/rate?key=[mediaKey]&identifier=com.plexapp.plugins.library&rating=[rating]
 
+ping and progress every 60s
+
 
 /video -> video plugins
 /music -> music plugins
