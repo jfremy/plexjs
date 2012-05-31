@@ -200,6 +200,13 @@ body {
 	margin-left: 11px;
 	margin-top: 20px;
 }
+
+#server-error {
+    color: red;
+    font-size: 20px;
+    padding: 7px;
+}
+
 .item {
 	float: left;
 	width: 150px;

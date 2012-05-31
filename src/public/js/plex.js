@@ -860,6 +860,7 @@ var PLEX = {
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
                             console.log("Load section failed " + i);
+                            processedSections++;
                             if(jqXHR.status == 401) {
                                 PLEX.display_login();
                             } else {
@@ -874,6 +875,8 @@ var PLEX = {
                 if(jqXHR.status == 401) {
                     PLEX.display_login();
                 } else {
+                    PLEX._item_list_status.html('<div id="server-error">Could not contact Plex Media Server ' + PLEX.current_server.name +' (' + PLEX.current_server.host +':' + PLEX.current_server.port +')</div>').show();
+                    PLEX._item_list.html('');
                     console.log(errorThrown);
                 }
             }
