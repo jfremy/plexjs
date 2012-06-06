@@ -89,6 +89,33 @@ module.exports = (function() {
 
     }
 
+    function handleSetAudioStream(req, res, next, partId, streamId) {
+        handleSetStreamId(req, res, next, partId, 'audioStreamID', streamId);
+    }
+
+    function handleSetSubtitleStream(req, res, next, partId, streamId) {
+        handleSetStreamId(req, res, next, partId, 'subtitleStreamID', streamId);
+    }
+
+    function handleSetStreamId(req, res, next, partId, streamName, streamId) {
+        var authToken = getAuthToken(req);
+        var options = {
+            host: req.session.server.host,
+            port: req.session.server.port,
+            method: 'PUT',
+            path: '/library/parts/' + partId + '?' + streamName + '=' + streamId + '&X-Plex-Token=' + authToken
+        };
+
+        http_utils.request(false, options, 'none', function(data) {
+            res.statusCode = 204;
+            res.end();
+        }, function(err) {
+            console.log(err.msg);
+            res.statusCode = err.statusCode;
+            res.end(err.msg);
+            return;
+        });
+    }
 
     function buildVideoTranscodeUrlFromBase(base, ratingKey, partUrl, offset, quality, is3g) {
         var now = Math.round(new Date().getTime()/1000);
@@ -150,6 +177,8 @@ module.exports = (function() {
     return {
         buildPhotoBaseTranscodeUrl: buildPhotoBaseTranscodeUrl,
         handleVideoTranscoding: handleVideoTranscoding,
+        handleSetAudioStream: handleSetAudioStream,
+        handleSetSubtitleStream: handleSetSubtitleStream,
         getAuthToken: getAuthToken,
         populateRatingKeyFromKey: populateRatingKeyFromKey
     }

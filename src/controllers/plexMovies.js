@@ -20,12 +20,15 @@ var plex_utils = require('../utils/plex_utils');
 var data_utils = require('../utils/data_utils');
 
 module.exports = function(app){
+    var invalidated = false; // Should we force refresh (set to true after an action that changes the state of the element takes place)
 
     app.param('movieId', function(req, res, next, movieId){
-        if(req.session.hasOwnProperty("movie") && req.session.movie.ratingKey == movieId) {
+        if(!invalidated && req.session.hasOwnProperty("movie") && req.session.movie.ratingKey == movieId) {
             next();
             return;
         }
+
+        invalidated = false;
         var authToken = plex_utils.getAuthToken(req);
         var options = {
             host: req.session.server.host,
@@ -34,6 +37,7 @@ module.exports = function(app){
         };
         http_utils.request(false, options, 'xml', function(data) {
             req.session.movie = data.Video;
+            data_utils.makeSureIsArray(req.session.movie.Media, "Part");
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, [data.Video], "thumb");
             next();
             return;
@@ -52,7 +56,41 @@ module.exports = function(app){
     });
 
     app.get('/servers/:serverId/library/movies/:movieId/hls/*', function(req, res, next) {
-        plex_utils.handleVideoTranscoding(req, res, next, req.session.movie.ratingKey, req.session.movie.Media.Part.key);
+        plex_utils.handleVideoTranscoding(req, res, next, req.session.movie.ratingKey, req.session.movie.Media.Part[0].key);
     });
 
+    // Change audio stream
+    app.put('/servers/:serverId/library/movies/:movieId/audioStream', function(req, res, next) {
+        var movie = req.session.movie;
+        var streamId = req.param('audioStreamId');
+
+        invalidated = true;
+
+        if(movie.Media.Part.length > 1 || movie.Media.Part.length == 0) {
+            var msg = "Cannot set global audiostream with multiple parts";
+            console.log(msg);
+            res.statusCode(400);
+            res.end(msg);
+        }
+        plex_utils.handleSetAudioStream(req, res, next, movie.Media.Part[0].id, streamId);
+
+
+
+    });
+
+    // Change subtitle stream
+    app.put('/servers/:serverId/library/movies/:movieId/subtitleStream', function(req, res, next) {
+        var movie = req.session.movie;
+        var streamId = req.param('subtitleStreamId');
+
+        invalidated = true;
+
+        if(movie.Media.Part.length > 1 || movie.Media.Part.length == 0) {
+            var msg = "Cannot set global audiostream with multiple parts";
+            console.log(msg);
+            res.statusCode(400);
+            res.end(msg);
+        }
+        plex_utils.handleSetSubtitleStream(req, res, next, movie.Media.Part[0].id, streamId);
+    });
 };

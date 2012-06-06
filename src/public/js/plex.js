@@ -523,11 +523,12 @@ var PLEX = {
 
                 // Compute total size as media can be composed of multiple parts.
                 media.total_size = 0;
-                if(!$.isArray(media.Part)) media.Part = [media.Part];
                 $.each(media.Part, function(i,v) { media.total_size += Number(v.size);});
 
 				popup_content += '<li><strong>Video:</strong> codec: '+media.videoCodec+', framerate: '+media.videoFrameRate+ ((media.videoResolution != undefined && media.videoResolution>0)?', vert: '+media.videoResolution:'') + ((media.aspectRatio != undefined && media.aspectRatio>0)?', aspect ratio: '+media.aspectRatio:'') +'</li>';
-				popup_content += '<li><strong>Audio:</strong> codec: '+media.audioCodec+', channels: '+media.audioChannels+'</li>';
+				//popup_content += '<li><strong>Audio:</strong> codec: '+media.audioCodec+', channels: '+media.audioChannels+'</li>';
+                popup_content += PLEX.generate_audiostream_content(media.Part[0]);
+                popup_content += PLEX.generate_subtitle_stream(media.Part[0]);
 				if(media.total_size != false) popup_content += '<li><strong>File:</strong> '+hl_bytes_to_human(media.total_size)+' @ '+media.bitrate+'kbps</li>';
 
                 popup_content += '<li class="playMovie" data-movie="'+ PLEX.current_item.ratingKey +'"><strong>Play: </strong><img src="images/play_button.png" height="16" /></li>'
@@ -750,6 +751,63 @@ var PLEX = {
             img.removeAttr('data-src');
         });
 
+        $(document).on("change", ".audio-stream", function(event) {
+            var select = $(this);
+            var selected = select.find("option:selected");
+            var streamId = selected.attr("data-audio");
+
+            $.ajax({
+                url: "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + PLEX.current_item.ratingKey + "/audioStream",
+                type: "PUT",
+                data: {
+                    "audioStreamId": streamId
+                },
+                success: function(data, textStatus, jqXHR) {
+                    //codec: ' + codec + ', channels: ' + channels
+                    $.each(PLEX.current_item.Media.Part[0].Stream, function(i,e) {
+                        if(e.id == streamId) {
+                            $("span.audio-details").html("codec: " + e.codec + ", channels: " + e.channels);
+                            return false;
+                        }
+                    });
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $("span.audio-details").html("Failed");
+                }
+            });
+
+        });
+
+        $(document).on("change", ".subtitle-stream", function(event) {
+            var select = $(this);
+            var selected = select.find("option:selected");
+            var streamId = selected.attr("data-subtitle");
+
+            $.ajax({
+                url: "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + PLEX.current_item.ratingKey + "/subtitleStream",
+                type: "PUT",
+                data: {
+                    "subtitleStreamId": streamId
+                },
+                success: function(data, textStatus, jqXHR) {
+                    //codec: ' + codec + ', channels: ' + channels
+                    if(streamId == "") {
+                        $("span.subtitle-details").html("");
+                    }
+                    $.each(PLEX.current_item.Media.Part[0].Stream, function(i,e) {
+                        if(e.id == streamId) {
+                            $("span.subtitle-details").html("type: " + e.format);
+                            return false;
+                        }
+                    });
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $("span.subtitle-details").html("Failed");
+                }
+            });
+
+        });
+
 	}, // end func: run
 
     display_login: function() {
@@ -883,6 +941,55 @@ var PLEX = {
         });
 
     },
+    generate_audiostream_content: function(part) {
+        //'<li><strong>Audio:</strong> codec: '+media.audioCodec+', channels: '+media.audioChannels+'</li>'
+        var codec = "";
+        var channels = "";
+        var content = '<li><strong>Audio:</strong>';
+        if(!$.isArray(part['Stream'])) part['Stream'] = [part['Stream']];
+
+        content += '<select class="audio-stream" data-part="' + part.id +'">';
+        $.each(part.Stream, function(i,e) {
+            // Only take audio stream
+            if(!e.hasOwnProperty('streamType') || e.streamType != 2) {
+                return;
+            }
+            content += '<option ' + (e.hasOwnProperty('selected') ? 'selected="selected" ': '') + ' data-audio="' + e.id + '">' + (e.hasOwnProperty('language') ? e.language : 'unknown') + '</option>'
+
+            if(e.hasOwnProperty('selected')) {
+                codec = e.codec;
+                channels = e.channels;
+            }
+        });
+        content += '</select>'
+        content += '<span class="audio-details">codec: ' + codec + ', channels: ' + channels + '</span>';
+        content += '</li>';
+        return content;
+    },
+    generate_subtitle_stream: function(part) {
+        var i = 0;
+        var type = "";
+        var content = '<li><strong>Subtitles:</strong>';
+        if(!$.isArray(part['Stream'])) part['Stream'] = [part['Stream']];
+
+        content += '<select class="subtitle-stream">';
+        content += '<option data-subtitle="">None</option>';
+        $.each(part.Stream, function(i,e) {
+            // Only take audio stream
+            if(!e.hasOwnProperty('streamType') || e.streamType != 3) {
+                return;
+            }
+            content += '<option ' + (e.hasOwnProperty('selected') ? 'selected="selected" ': '') + ' data-subtitle="' + e.id + '">' + (e.hasOwnProperty('language') ? e.language : 'Unknown') + '</option>'
+
+            if(e.hasOwnProperty('selected')) {
+                type = e.format;
+            }
+        });
+        content += '</select>'
+        content += '<span class="subtitle-details">' + (type ? 'type: ' + type : "") + '</span>';
+        content += '</li>';
+        return content;
+    },
     load_items: function(section_id) {
         $.ajax({
             url: "/servers/" + PLEX.current_server.machineIdentifier + "/sections/" + PLEX.sections[section_id].key + "/filters/all/",
@@ -976,18 +1083,19 @@ var PLEX = {
                 console.log("Got playlist");
                 jwplayer('popup-player').setup({
                     wmode: "gpu",
-                    modes: [ {
-                        type: 'flash',
-                        src:  '/public/swf/player.swf',
-                        config: {
-                            file: data.transcodeURL,
-                            provider:'/public/swf/adaptiveProvider.swf'
-                        }
-                    },
+                    modes: [
                         {
                             type:'html5',
                             config: {
                                 file: data.transcodeURL
+                            }
+                        },
+                        {
+                            type: 'flash',
+                            src:  '/public/swf/player.swf',
+                            config: {
+                                file: data.transcodeURL,
+                                provider:'/public/swf/adaptiveProvider.swf'
                             }
                         }
                     ],

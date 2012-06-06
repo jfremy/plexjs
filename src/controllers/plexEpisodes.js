@@ -20,13 +20,17 @@ var plex_utils = require('../utils/plex_utils');
 var data_utils = require('../utils/data_utils');
 
 module.exports = function(app) {
+    var invalidated = false;
+
     app.param('episodeId', function(req, res, next, episodeId) {
         // We already have this element
         //TODO: allow to force refresh (get param probably since this can become outdated, currently, just switch shows and come back and will be updated
-        if(req.session.hasOwnProperty("episode") && req.session.episode.ratingKey == episodeId) {
+        if(!invalidated && req.session.hasOwnProperty("episode") && req.session.episode.ratingKey == episodeId) {
             next();
             return;
         }
+
+        invalidated = false;
         var authToken = plex_utils.getAuthToken(req);
         var options = {
             host: req.session.server.host,
@@ -35,6 +39,7 @@ module.exports = function(app) {
         };
         http_utils.request(false, options, 'xml', function(data) {
             req.session.episode = data.Video;
+            data_utils.makeSureIsArray(req.session.episode.Media, "Part");
             plex_utils.buildPhotoBaseTranscodeUrl(authToken, req.session.server, [req.session.episode], "thumb");
             //TODO: other images that need to be transcoded? poster, theme ...
             next();
@@ -84,6 +89,41 @@ module.exports = function(app) {
     });
     //Transcode URL
     app.get('/servers/:serverId/library/shows/:showId/seasons/:seasonId/episodes/:episodeId/hls/*', function(req, res, next) {
-        plex_utils.handleVideoTranscoding(req, res, next, req.session.episode.ratingKey, req.session.episode.Media.Part.key);
+        plex_utils.handleVideoTranscoding(req, res, next, req.session.episode.ratingKey, req.session.episode.Media.Part[0].key);
+    });
+
+    // Change audio stream
+    app.put('/servers/:serverId/library/shows/:showId/seasons/:seasonId/episodes/:episodeId/audioStream', function(req, res, next) {
+        var episode = req.session.episode;
+        var streamId = req.param('audioStreamId');
+
+        invalidated = true;
+
+        if(episode.Media.Part.length > 1 || episode.Media.Part.length == 0) {
+            var msg = "Cannot set global audiostream with multiple parts";
+            console.log(msg);
+            res.statusCode(400);
+            res.end(msg);
+        }
+        plex_utils.handleSetAudioStream(req, res, next, episode.Media.Part[0].id, streamId);
+
+
+
+    });
+
+    // Change subtitle stream
+    app.put('/servers/:serverId/library/shows/:showId/seasons/:seasonId/episodes/:episodeId/subtitleStream', function(req, res, next) {
+        var episode = req.session.episode;
+        var streamId = req.param('subtitleStreamId');
+
+        invalidated = true;
+
+        if(episode.Media.Part.length > 1 || episode.Media.Part.length == 0) {
+            var msg = "Cannot set global audiostream with multiple parts";
+            console.log(msg);
+            res.statusCode(400);
+            res.end(msg);
+        }
+        plex_utils.handleSetSubtitleStream(req, res, next, episode.Media.Part[0].id, streamId);
     });
 };
