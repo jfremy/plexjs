@@ -29,6 +29,7 @@ module.exports = (function() {
                 result += chunk;
             });
             serverRes.on('end', function(){
+                logRequestDetails(secure, options, serverRes.statusCode);
                 if(serverRes.statusCode >= 400) {
                     failure({statusCode: serverRes.statusCode, msg: "Error contacting server"});
                     return;
@@ -57,9 +58,21 @@ module.exports = (function() {
             });
 
         }).on('error', function(err) {
+                logRequestDetails(secure, options, serverRes.statusCode);
                 failure({statusCode: 500, msg: err.message});
                 return;
             }).end();
+    }
+
+    function logRequestDetails(secure, options, statusCode) {
+        var message = 'HTTP_Utils\t[' + new Date().toUTCString() + '] "';
+        message += (options.method ? options.method: 'GET') + ' ';
+        message += (secure ? 'https':'http') +'://';
+        message += options.host + ":" + options.port;
+        message += options.path;
+        message += '" - ';
+        message += statusCode;
+        console.log(message);
     }
 
     function answerBasedOnAccept(req, res, viewName, data) {
