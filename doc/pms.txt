@@ -26,7 +26,7 @@ URLs
 /video/:/transcode/segmented/session/[sessionCookieGUID]/[idx]/index.m3u8
 /video/:/transcode/segmented/session/[sessionCookieGUID]/[idx]/[currentSegment]
 /video/:/transcode/segmented/stop?session=[sessionCookieGUID]
-/video/:/transcode/segmented/ping
+/video/:/transcode/segmented/ping?session=[sessionCookieGUID]
 /music/:/transcode/generic.mp3?offset=[offset]&format=mp3&audioCodec=libmp3lame&audioBitrate=320&audioSamples=44100&url=[url]&X-Plex-Client-Capabilities
 /:/progress?key=[mediaKey]&identifier=com.plexapp.plugins.library&time=[time]&state=[state]
 /:/scrobble?key=[mediaKey]&identifier=com.plexapp.plugins.library       -> mark as viewed
