@@ -24,6 +24,7 @@ var PLEX = {
 	filter_timeout: false,
 	filter_delay: 350,
 	popup_visible: false,
+    canCloseOverlay: true,
     transcodeId: "",
     transcodePingTimer: false,
 
@@ -694,11 +695,13 @@ var PLEX = {
 
 
 		PLEX._popup_overlay.click(function(){
-			PLEX.hide_item();
+            if(!PLEX.checkCloseOverlay()) return;
+            PLEX.hide_item();
             PLEX.transcodeStop();
 		});
 
 		$(document).on("click",".popup-close", function(){
+            if(!PLEX.checkCloseOverlay()) return;
 			PLEX.hide_item();
             PLEX.transcodeStop();
 		});
@@ -707,20 +710,7 @@ var PLEX = {
 			$("#sidebar").toggle();
 			return false;
 		});
-        /*
-		var hash = window.location.hash;
-		if(hash!="") {
-			var regex = new RegExp("#([0-9a-f]+)/?([0-9]+)?/?([0-9]+)?/?");
-			var m = regex.exec(hash);
-			var m1 = parseInt(m[1]);
-			var m2 = parseInt(m[2]);
-            var m3 = parseInt(m[3]);
-            if(m1) PLEX.display_server(m1);
-			if(m1>0) PLEX.display_section(m2);
-			if(m2>0) PLEX.display_item(m3);
-		} else {
-			$("li:first", PLEX._servers_list).click();
-		} */
+
         $(document).on("click", ".playMovie", function(event) {
             var e = $(this);
             var ratingKey = e.attr("data-movie");
@@ -816,6 +806,7 @@ var PLEX = {
 
     display_login: function() {
         var login_html = PLEX.generate_login_content();
+        PLEX.setCloseOverlay(false);
         PLEX._popup_overlay.fadeIn().height($(window).height());
         PLEX._popup_container
             .html(login_html)
@@ -825,33 +816,33 @@ var PLEX = {
             })
             .fadeIn();
 
-        $("#signInButton").click(function(ev) {
-            var data = {};
-            data.username = $("#popup-content input[name='username']").val();
-            data.password = $("#popup-content input[name='password']").val();
-            console.log("Logging in " + data.username);
-            $.ajax({
-                type: "POST",
-                url: "/login",
-                data: data,
-                dataType: "json",
-                success: function(data, textStatus, jqXHR) {
-                    console.log("Signed in");
-                    // Hide the login form
-                    PLEX._popup_overlay.fadeOut();
-                    PLEX._popup_container.fadeOut();
-                    PLEX.load_servers();
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log("Sign in failed");
-                    $('#signInMessage').html("Invalid username/password")
-                }
-            })
-        });
-
         return;
     },
-
+    handle_signin: function() {
+        var data = {};
+        data.username = $("#popup-content input[name='username']").val();
+        data.password = $("#popup-content input[name='password']").val();
+        console.log("Logging in " + data.username);
+        $.ajax({
+            type: "POST",
+            url: "/login",
+            data: data,
+            dataType: "json",
+            success: function(data, textStatus, jqXHR) {
+                console.log("Signed in");
+                // Hide the login form
+                PLEX.setCloseOverlay(true);
+                PLEX._popup_overlay.fadeOut();
+                PLEX._popup_container.fadeOut();
+                PLEX.load_servers();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Sign in failed");
+                $('#signInMessage').html("Invalid username/password")
+            }
+        });
+        return false;
+    },
     load_servers: function() {
         $.ajax({
             url: "/servers/",
@@ -1149,14 +1140,22 @@ var PLEX = {
 
 
         var popup_content = '<div id="popup-content">';
+        popup_content += '<form id="myplex-login" action="login" onsubmit="return PLEX.handle_signin();">';
         popup_content += '<div><h3 id="signInMessage"></h3></div>'
-        popup_content += '<div><h3>Username:</h3></div><div><input type="text" name="username" size="64" /></div>';
-        popup_content += '<div><h3>Password:</h3></div><div><input type="password" name="password" size="64" /></div>';
-        popup_content += '<div><input type="button" value="Sign in" id="signInButton"/></div>'
+        popup_content += '<div><h3><label for="username">Username:</label></h3></div><div><input type="text" name="username" size="64" value="" required="required" /></div>';
+        popup_content += '<div><h3><label for="password">Password:</label></h3></div><div><input type="password" name="password" size="64" value="" required="required" /></div>';
+        popup_content += '<div><input type="submit" value="Sign in" id="signInButton"/></div>'
+        popup_content += '</form>'
         popup_content += '</div>';
 
         return popup_header + '<div id="popup-outer"><div id="popup-inner">' + popup_content + '<div class="clear"></div></div>' + popup_footer + '</div>';
 
+    },
+    checkCloseOverlay: function() {
+        return PLEX.canCloseOverlay;
+    },
+    setCloseOverlay: function(state) {
+        PLEX.canCloseOverlay = state;
     },
     transcodeStop: function() {
         if(PLEX.transcodeId) {
