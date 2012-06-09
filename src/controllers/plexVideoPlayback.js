@@ -24,10 +24,11 @@ module.exports = function(app){
     });
 
     app.delete('/playback/:transcodeId', function(req, res, next) {
+        var authToken = plex_utils.getAuthToken(req);
         var options = {
             host: req.session.server.host,
             port: req.session.server.port,
-            path: '/video/:/transcode/segmented/stop',
+            path: '/video/:/transcode/segmented/stop?session=' + req.param('transcodeId') + '&X-Plex-Token=' + encodeURIComponent(authToken),
             headers: {
                 Cookie: 'SESSION-GUID=' + req.param('transcodeId')
             }
