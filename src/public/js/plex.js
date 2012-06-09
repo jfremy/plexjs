@@ -526,13 +526,15 @@ var PLEX = {
                 media.total_size = 0;
                 $.each(media.Part, function(i,v) { media.total_size += Number(v.size);});
 
-				popup_content += '<li><strong>Video:</strong> codec: '+media.videoCodec+', framerate: '+media.videoFrameRate+ ((media.videoResolution != undefined && media.videoResolution>0)?', vert: '+media.videoResolution:'') + ((media.aspectRatio != undefined && media.aspectRatio>0)?', aspect ratio: '+media.aspectRatio:'') +'</li>';
+                var baseUrl = "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + PLEX.current_item.ratingKey +"/"
+
+                popup_content += '<li><strong>Video:</strong> codec: '+media.videoCodec+', framerate: '+media.videoFrameRate+ ((media.videoResolution != undefined && media.videoResolution>0)?', vert: '+media.videoResolution:'') + ((media.aspectRatio != undefined && media.aspectRatio>0)?', aspect ratio: '+media.aspectRatio:'') +'</li>';
 				//popup_content += '<li><strong>Audio:</strong> codec: '+media.audioCodec+', channels: '+media.audioChannels+'</li>';
-                popup_content += PLEX.generate_audiostream_content(media.Part[0]);
-                popup_content += PLEX.generate_subtitle_stream(media.Part[0]);
+                popup_content += PLEX.generate_audiostream_content(baseUrl, media.Part[0]);
+                popup_content += PLEX.generate_subtitle_stream(baseUrl, media.Part[0]);
 				if(media.total_size != false) popup_content += '<li><strong>File:</strong> '+hl_bytes_to_human(media.total_size)+' @ '+media.bitrate+'kbps</li>';
 
-                popup_content += '<li class="playMovie" data-movie="'+ PLEX.current_item.ratingKey +'"><strong>Play: </strong><img src="images/play_button.png" height="16" /></li>'
+                popup_content += '<li class="playMovie" data-movie="'+ baseUrl +'"><strong>Play: </strong><img src="images/play_button.png" height="16" /></li>'
 			}
 			popup_content += '</ul>';
 		}
@@ -567,15 +569,39 @@ var PLEX = {
 			$("#popup_seasons_episodes li").live("click", function(){
 				$("#popup_seasons_episodes li").removeClass("current");
 				$(this).addClass("current");
+                var show_id = PLEX.current_item.ratingKey;
                 var episode_key = Number($(this).attr("data-episode"));
 				var episode = PLEX.current_item.episodes[episode_key];
-				var minutes = Math.round(episode.duration/60000);
-				var html = '<h5>'+episode.title+'</h5><img class="playMovie" data-movie="'+ episode.ratingKey +'"src="images/play_button.png" height="16" /><p class="meta">'+episode_tag(episode)+' | '+minutes+' '+inflect(minutes,'minute')+' | Rated '+episode.rating+'</p><p>'+episode.summary+'</p>';
-                //html += "<ul>";
-                //html += PLEX.generate_audiostream_content(episode.Media.Part[0]);
-                //html += PLEX.generate_subtitle_stream(episode.Media.Part[0]);
-                //html += "</ul>";
-				$("#popup_seasons_episode").html(html);
+                var season_id = episode.parentKey.substring(episode.parentKey.lastIndexOf("/")+1);
+                var episode_id = episode.ratingKey;
+                var minutes = Math.round(episode.duration/60000);
+
+                var urlEpisode = "/servers/" + PLEX.current_server.machineIdentifier + "/library/shows/" + show_id + "/seasons/" + season_id + "/episodes/" + episode_id +"/";
+
+                $.ajax({
+                    url: urlEpisode,
+                    dataType: "json",
+                    success: function(data, textStatus, jqXHR) {
+                        console.log("Loaded episode details");
+                        episode = data.episode;
+                        var html = '<h5>'+episode.title+'</h5><p class="meta">'+episode_tag(episode)+' | '+minutes+' '+inflect(minutes,'minute')+' | Rated '+episode.rating+'</p><p>'+episode.summary+'</p>';
+                        html += "<ul>";
+                        html += PLEX.generate_audiostream_content(urlEpisode, episode.Media.Part[0]);
+                        html += PLEX.generate_subtitle_stream(urlEpisode, episode.Media.Part[0]);
+                        html += '<li class="playEpisode" data-episode="' + urlEpisode + '"><strong>Play: </strong><img src="images/play_button.png" height="16" /></li>';
+                        html += '</ul>';
+                        $("#popup_seasons_episode").html(html);
+
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log("Load episode details failed");
+                        if(jqXHR.status == 401) {
+                            PLEX.display_login();
+                        } else {
+                            console.log(errorThrown);
+                        }
+                    }
+                });
 			});
 
 		} // end SEASON BROWSER
@@ -713,8 +739,14 @@ var PLEX = {
 
         $(document).on("click", ".playMovie", function(event) {
             var e = $(this);
-            var ratingKey = e.attr("data-movie");
-            PLEX.playMedia(ratingKey);
+            var baseUrl = e.attr("data-movie");
+            PLEX.playMedia(baseUrl);
+        });
+
+        $(document).on("click", ".playEpisode", function(event) {
+            var e = $(this);
+            var baseUrl = e.attr("data-episode");
+            PLEX.playMedia(baseUrl);
         });
 
         $("#sign_out").on("click", function(event) {
@@ -747,11 +779,12 @@ var PLEX = {
 
         $(document).on("change", ".audio-stream", function(event) {
             var select = $(this);
+            var baseUrl = select.attr("data-base");
             var selected = select.find("option:selected");
             var streamId = selected.attr("data-audio");
 
             $.ajax({
-                url: "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + PLEX.current_item.ratingKey + "/audioStream",
+                url: baseUrl + "audioStream",
                 type: "PUT",
                 data: {
                     "audioStreamId": streamId
@@ -774,11 +807,12 @@ var PLEX = {
 
         $(document).on("change", ".subtitle-stream", function(event) {
             var select = $(this);
+            var baseUrl = select.attr("data-base");
             var selected = select.find("option:selected");
             var streamId = selected.attr("data-subtitle");
 
             $.ajax({
-                url: "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + PLEX.current_item.ratingKey + "/subtitleStream",
+                url: baseUrl + "subtitleStream",
                 type: "PUT",
                 data: {
                     "subtitleStreamId": streamId
@@ -951,14 +985,14 @@ var PLEX = {
         });
 
     },
-    generate_audiostream_content: function(part) {
+    generate_audiostream_content: function(baseUrl, part) {
         //'<li><strong>Audio:</strong> codec: '+media.audioCodec+', channels: '+media.audioChannels+'</li>'
         var codec = "";
         var channels = "";
         var content = '<li><strong>Audio:</strong>';
         if(!$.isArray(part['Stream'])) part['Stream'] = [part['Stream']];
 
-        content += '<select class="audio-stream" data-part="' + part.id +'">';
+        content += '<select class="audio-stream" data-part="' + part.id +'" data-base="' + baseUrl + '">';
         $.each(part.Stream, function(i,e) {
             // Only take audio stream
             if(!e.hasOwnProperty('streamType') || e.streamType != 2) {
@@ -976,13 +1010,13 @@ var PLEX = {
         content += '</li>';
         return content;
     },
-    generate_subtitle_stream: function(part) {
+    generate_subtitle_stream: function(baseUrl, part) {
         var i = 0;
         var type = "";
         var content = '<li><strong>Subtitles:</strong>';
         if(!$.isArray(part['Stream'])) part['Stream'] = [part['Stream']];
 
-        content += '<select class="subtitle-stream">';
+        content += '<select class="subtitle-stream data-part="' + part.id +'" data-base="' + baseUrl + '">';
         content += '<option data-subtitle="">None</option>';
         $.each(part.Stream, function(i,e) {
             // Only take audio stream
@@ -1078,13 +1112,13 @@ var PLEX = {
         });
         return result;
     },
-    playMedia: function(mediaId) {
+    playMedia: function(baseUrl) {
         $("#popup-content").hide();
         $("#popup-content-player").show();
         // We use movies even for tvshows as on plex side it does not make a difference (everything is in library/metadata/
         // It could pose pb at the frond end side but actually works.
         var quality = $("#video_quality").val();
-        var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/movies/" + mediaId +"/hls/start.json?quality=" + quality;
+        var url = baseUrl + "hls/start.json?quality=" + quality;
 
         $.ajax({
             url: url,

@@ -400,7 +400,10 @@ body {
 	font-weight: bold;
 }
 
-
+#popup-content-meta select {
+    font-size: 11px;
+    padding-right: 5px;
+}
 
 #popup_seasons {
 	width: 535px;
@@ -435,6 +438,20 @@ body {
 #popup_seasons_episode .meta {
 	padding-top: 0;
 	color: #666;
+}
+
+#popup_seasons_episode ul {
+    font-size: 11px;
+}
+
+#popup_seasons_episode ul select {
+    font-size: 11px;
+    padding-right: 5px;
+}
+
+#popup_seasons_episode ul li:hover {
+    background: none;
+    color: #272B2D;
 }
 
 #popup-content input {
