@@ -910,6 +910,14 @@ var PLEX = {
                             console.log("Loaded section " + i);
                             section.items = data.videos ? data.videos : data.shows;
                             displayedSections.push(section);
+                            displayedSections.sort(function(a,b) {
+                                var nameA=a.title.toLowerCase(), nameB=b.title.toLowerCase()
+                                if (nameA < nameB) //sort string ascending
+                                    return -1;
+                                if (nameA > nameB)
+                                    return 1;
+                                return 0; //default return value (no sorting)
+                            });
 
                             processedSections++;
                             if(processedSections == numSections) {
