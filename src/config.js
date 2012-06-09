@@ -21,6 +21,13 @@ module.exports = (function() {
             port: 8000,
             address: ''
         },
+        redisServer: {
+            host: '127.0.0.1',
+            port: '6379'
+        },
+        session: {
+            secret: '?I36r213}][;S+1~!O<3kv4V1]U<]o'
+        },
         myPlexHeaders: {
             'X-Plex-Platform': 'NodeJS',
             'X-Plex-Platform-Version': process.versions.node,
@@ -41,23 +48,23 @@ module.exports = (function() {
                     //'http-streaming-video-240p',
                     //'http-streaming-video-320p',
                     //'http-streaming-video-480p',
-                    'http-streaming-video-720p',
+                    //'http-streaming-video-720p',
                     'http-streaming-video-1080p',
                     'http-mp4-video',
                     //'http-mp4-video-240p',
                     //'http-mp4-video-320p',
                     //'http-mp4-video-480p',
-                    'http-mp4-video-720p',
+                    //'http-mp4-video-720p',
                     'http-mp4-video-1080p'
                 ],
-                videoDecoder: [   //Used for DirectStream
-                    //'h264{profile:high&resolution:1080&level:51}',
-                    //'h264{profile:high&resolution:720&level:51}',
+                videoDecoders: [   //Used for DirectStream
+                    //'h264{profile:high&resolution:1080&level:51}'
+                    //'h264{profile:high&resolution:720&level:51}'
                     //'h264{profile:baseline&resolution:480&level:30}'
                 ],
-                audioDecoder: [
+                audioDecoders: [
                     'mp3',
-                    'aac'//,
+                    'aac{bitrate:160000}'//,
                     //'ac3{channels=6}'
                 ]
             }

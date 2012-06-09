@@ -1034,26 +1034,6 @@ var PLEX = {
         content += '</li>';
         return content;
     },
-    load_items: function(section_id) {
-        $.ajax({
-            url: "/servers/" + PLEX.current_server.machineIdentifier + "/sections/" + PLEX.sections[section_id].key + "/filters/all/",
-            dataType: "json",
-            success: function(data, textStatus, jqXHR) {
-                console.log("Loaded section");
-                PLEX.items = data.videos ? data.videos : data.shows;
-                PLEX.display_section(section_id);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Load section failed");
-                if(jqXHR.status == 401) {
-                    PLEX.display_login();
-                } else {
-                    console.log(errorThrown);
-                }
-            }
-        });
-
-    },
     load_item: function(item_id) {
         var url = "/servers/" + PLEX.current_server.machineIdentifier + "/library/";
         if(PLEX.current_section.type == "movie") {
