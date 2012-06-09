@@ -17,16 +17,19 @@
 */
 var express = require('express');
 var config = require('./config');
+var redis = require('redis');
+var RedisStore = require('connect-redis')(express);
+var RedisClient = redis.createClient(config.redisServer.port, config.redisServer.host);
 
 var app = express.createServer();
 app.use(express.logger());
 app.use(express.favicon(__dirname + '/public/images/favicon.ico'));
 app.use(express.methodOverride());
 app.use(express.bodyParser());
+// Seems it has to happen before cookieParser
 app.use(express.cookieParser());
 app.use(express.responseTime());
-//TODO: add memcached session handler
-app.use(express.session({ secret: "keyboard cat", key: "sid" }));
+app.use(express.session({secret: config.session.secret, key: "sid", store: new RedisStore({ client: RedisClient})}));
 
 // Static content
 app.use('/public', express.static(__dirname + '/public'));
@@ -45,5 +48,6 @@ require('./controllers/plexShows')(app);
 require('./controllers/plexSeasons')(app);
 require('./controllers/plexEpisodes')(app);
 require('./controllers/plexVideoPlayback')(app);
+require('./controllers/userSettings')(app, RedisClient);
 
 app.listen(config.server.port,config.server.address);
