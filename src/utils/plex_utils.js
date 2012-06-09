@@ -125,6 +125,7 @@ module.exports = (function() {
         transcodeUrl += "url=" + encodeURIComponent(localVideoUrl);
         transcodeUrl += "&identifier=com.plexapp.plugins.library";
         transcodeUrl += "&ratingKey=" + encodeURIComponent(ratingKey);
+        transcodeUrl += "&key="+ encodeURIComponent("http://127.0.0.1:32400/library/metadata/" + ratingKey);
         transcodeUrl += "&offset=" + encodeURIComponent(offset);
         transcodeUrl += "&quality=" + encodeURIComponent(quality);
         transcodeUrl += "&3g=" + encodeURIComponent(is3g ? 1 : 0);
