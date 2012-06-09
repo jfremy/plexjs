@@ -22,7 +22,6 @@ var negotiate = require('express-negotiate');
 
 module.exports = (function() {
     function request(secure, options, type, success, failure) {
-        console.log(options);
         var serverReq = (secure ? https : http).request(options, function(serverRes) {
             var result = "";
             serverRes.setEncoding('utf8');
