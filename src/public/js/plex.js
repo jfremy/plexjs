@@ -570,6 +570,10 @@ var PLEX = {
 				var episode = PLEX.current_item.episodes[episode_key];
 				var minutes = Math.round(episode.duration/60000);
 				var html = '<h5>'+episode.title+'</h5><img class="playMovie" data-movie="'+ episode.ratingKey +'"src="images/play_button.png" height="16" /><p class="meta">'+episode_tag(episode)+' | '+minutes+' '+inflect(minutes,'minute')+' | Rated '+episode.rating+'</p><p>'+episode.summary+'</p>';
+                //html += "<ul>";
+                //html += PLEX.generate_audiostream_content(episode.Media.Part[0]);
+                //html += PLEX.generate_subtitle_stream(episode.Media.Part[0]);
+                //html += "</ul>";
 				$("#popup_seasons_episode").html(html);
 			});
 
@@ -896,22 +900,29 @@ var PLEX = {
             dataType: "json",
             success: function(data, textStatus, jqXHR) {
                 console.log("Loaded sections");
-                PLEX.sections = $.isArray(data.sections) ? data.sections : [ data.sections ];
+                PLEX.sections = data.sections;
 
                 var numSections = PLEX.sections.length;
                 var processedSections = 0;
+                var displayedSections = [];
 
                 $.each(PLEX.sections, function(i,section) {
+                    if(section.type != "movie" && section.type != "show") {
+                        processedSections++;
+                        return;
+                    }
+
                     $.ajax({
                         url: "/servers/" + PLEX.current_server.machineIdentifier + "/sections/" + section.key + "/filters/all/",
                         dataType: "json",
                         success: function(data, textStatus, jqXHR) {
                             console.log("Loaded section " + i);
                             section.items = data.videos ? data.videos : data.shows;
-                            //PLEX.display_section(i);
+                            displayedSections.push(section);
 
                             processedSections++;
                             if(processedSections == numSections) {
+                                PLEX.sections = displayedSections;
                                 PLEX.display_sections_list();
                                 $("li:first", PLEX._sections_list).click();
                             }
