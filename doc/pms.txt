@@ -12,8 +12,8 @@ URLs
 [authent] /library/metadata/[mediaKey]/art?t=[cacheKiller]
 [authent] /library/arts
 [authent] /library/parts/[mediaKey]/[filename]
-[authent] PUT /library/parts/[mediaKey]?audioStreamId=[id]
-[authent] PUT /library/parts/[mediaKey]?subtitleStreamId=[id]
+[authent] PUT /library/parts/[mediaKey]?audioStreamID=[id]
+[authent] PUT /library/parts/[mediaKey]?subtitleStreamID=[id]
 [authent] /library/streams/[streamKey]
 [authent] /system/bundle/media/flags/studio/[studioName]?t=[cacheKiller]
 [authent] /system/bundle/media/flags/videoFrameRate/[frName]?t=[cacheKiller]
