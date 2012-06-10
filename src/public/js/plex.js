@@ -651,6 +651,12 @@ var PLEX = {
 		PLEX._popup_overlay = $("#popup-overlay");
 		PLEX._popup_container = $("#popup-container");
 
+        if(location.protocol.indexOf("http") != 0) {
+            PLEX._item_list_status.html('<div id="server-error">You must load this page from a Node.JS server. For instructions on how to install your own instance of Plex JS, please go to <a href="https://github.com/jfremy/plexjs">https://github.com/jfremy/plexjs</a></div>').show();
+            PLEX._item_list.html('');
+            return;
+        }
+
         PLEX.load_servers();
         return;
     },
@@ -913,7 +919,6 @@ var PLEX = {
     display_server: function (server_id) {
         if(PLEX.servers[server_id].machineIdentifier == PLEX.current_server.machineIdentifer) return;
         PLEX.current_server = PLEX.servers[server_id];
-        //window.location.hash = server_id;
 
         $("li", PLEX._servers_list).removeClass("current");
         $("li[data-server="+server_id+"]").addClass("current");
