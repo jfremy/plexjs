@@ -58,7 +58,7 @@ module.exports = (function() {
             });
 
         }).on('error', function(err) {
-                logRequestDetails(secure, options, serverRes.statusCode);
+                logRequestDetails(secure, options, err.message);
                 failure({statusCode: 500, msg: err.message});
                 return;
             }).end();
