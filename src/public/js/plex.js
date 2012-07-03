@@ -253,13 +253,7 @@ var PLEX = {
 		PLEX._item_list.html("");
 		var num_items = 0;
 		var html_string = '';
-		/*$.each(PLEX.current_section.sorts[PLEX.current_sort_key+"_"+PLEX.current_sort_order], function(i, key){
-			if(typeof items[key] == "undefined") return;
-			var item = items[key];
-			var thumb = (item.thumb==false)?"assets/images/default.png":item.thumb;
-			html_string += '<li data-item="'+item.key+'" class="item"><img src="'+thumb+'" width="150" /><h4>'+item.title+'</h4></li>';
-			num_items++;
-		}); */
+
         $.each(items, function(i,v) {
             var thumb = "images/default.png";
             var data_src = v.thumbTranscodeUrl ? ' data-src="' + v.thumbTranscodeUrl + '&width=150&height=250" ': "";

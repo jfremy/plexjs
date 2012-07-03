@@ -65,12 +65,12 @@ module.exports = (function() {
     }
 
     function logRequestDetails(secure, options, statusCode) {
-        var message = 'HTTP_Utils\t[' + new Date().toUTCString() + '] "';
+        var message = 'HTTP_Utils [' + new Date().toUTCString() + '] "';
         message += (options.method ? options.method: 'GET') + ' ';
         message += (secure ? 'https':'http') +'://';
         message += options.host + ":" + options.port;
         message += options.path;
-        message += '" - ';
+        message += '" ';
         message += statusCode;
         console.log(message);
     }

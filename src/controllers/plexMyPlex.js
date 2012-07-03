@@ -60,7 +60,7 @@ module.exports = function(app) {
             req.session.plexUser = authentResult.user['username'];
             req.session.plexEmail = authentResult.user['email'];
 
-            console.log("User logged in " + req.session.plexUser);
+            console.log("MyPlex [" + new Date().toUTCString() + "] User logged in " + req.session.plexUser);
 
             req.negotiate({
                 'application/json': function() {
@@ -98,7 +98,7 @@ module.exports = function(app) {
             path: '/users/sign_out.json'
         };
         http_utils.request(true, signoutOptions, 'text', function() {
-            console.log("User logged out: " + req.session.plexUser);
+            console.log("MyPlex [" + new Date().toUTCString() + "] Logged out: " + req.session.plexUser);
             delete req.session.plexToken;
 
             req.negotiate({
