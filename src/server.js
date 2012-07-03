@@ -33,6 +33,10 @@ app.use(express.session({secret: config.session.secret, key: "sid", store: new R
 
 // Static content
 app.use('/public', express.static(__dirname + '/public'));
+app.get('/', function(req, res) {
+    res.redirect('/public/index.html');
+    res.end();
+});
 
 // Rendering engine
 app.set('view engine', 'jade');
