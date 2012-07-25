@@ -24,8 +24,8 @@ var RedisClient = redis.createClient(config.redisServer.port, config.redisServer
 var app = express.createServer();
 app.use(express.logger());
 app.use(express.favicon(__dirname + '/public/images/favicon.ico'));
-app.use(express.methodOverride());
 app.use(express.bodyParser());
+app.use(express.methodOverride());
 // Seems it has to happen before cookieParser
 app.use(express.cookieParser());
 app.use(express.responseTime());
