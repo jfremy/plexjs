@@ -21,7 +21,7 @@ var redis = require('redis');
 var RedisStore = require('connect-redis')(express);
 var RedisClient = redis.createClient(config.redisServer.port, config.redisServer.host);
 
-var app = express.createServer();
+var app = express();
 app.use(express.logger());
 app.use(express.favicon(__dirname + '/public/images/favicon.ico'));
 app.use(express.bodyParser());
