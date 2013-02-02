@@ -1106,22 +1106,7 @@ var PLEX = {
                 console.log("Got playlist");
                 jwplayer('popup-player').setup({
                     wmode: "gpu",
-                    modes: [
-                        {
-                            type:'html5',
-                            config: {
-                                file: data.transcodeURL
-                            }
-                        },
-                        {
-                            type: 'flash',
-                            src:  '/public/swf/player.swf',
-                            config: {
-                                file: data.transcodeURL,
-                                provider:'/public/swf/adaptiveProvider.swf'
-                            }
-                        }
-                    ],
+                    file: data.transcodeURL,
                     autostart: true
                 });
 

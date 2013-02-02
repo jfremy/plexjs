@@ -19,5 +19,57 @@ var http_utils = require('../utils/http_utils');
 var data_utils = require('../utils/data_utils');
 
 module.exports = function(app,rclient) {
+    app.get('/user/', function(req, res, next) {
+        getSettings(req.session.plexUser, function(err, obj) {
+            if(!err) {
 
+            } else {
+
+            }
+            res.end();
+        });
+    });
+
+    app.get('/user/:settingId/', function(req,res,next){
+        getSetting(req.session.plexUser, req.param('settingId'), function(err, obj) {
+
+            res.end();
+        });
+    });
+
+    app.put('/user/:settingId/', function(req, res, next) {
+        setSetting(req.session.plexUser, req.param('settingId'), "");
+        res.end();
+    });
+
+    function getSettings(plexUser, callback) {
+        if(!plexUser) {
+            callback({ message: "Invalid session, no plex user present"},{})
+        }
+        var key = "user:" + plexUser;
+
+        rclient.hgetall(key, callback);
+    }
+
+    function getSetting(plexUser, settingId, callback) {
+        getSettings(plexUser, function(err, obj) {
+            var data = !err && obj.hasOwnProperty(settingId) ? obj[settingId] : "";
+            callback(err, data);
+        });
+    }
+
+    function setSetting(plexUser, settingId, value) {
+        if(!plexUser) {
+            return;
+        }
+        var key = "user:" + plexUser;
+        rclient.sadd('users', key);
+        rclient.hmset(key, settingId, value);
+    }
+
+    return {
+        getSetting: getSetting,
+        setSetting: setSetting,
+        getSettings: getSettings
+    };
 };
